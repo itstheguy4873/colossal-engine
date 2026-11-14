@@ -22,8 +22,6 @@
 
 ## Getting Started
 
-Installation
-
 ```bash
 # Clone the repository:
 
