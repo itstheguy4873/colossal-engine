@@ -1,0 +1,21 @@
+{
+  "name": "colossal-engine",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "dev": "vite"
+  },
+  "keywords": [],
+  "author": "itstheguy4873",
+  "license": "GPL-3.0-only",
+  "type": "commonjs",
+  "devDependencies": {
+    "@types/three": "^0.187.0",
+    "typescript": "^7.0.2",
+    "vite": "^8.3.8"
+  },
+  "dependencies": {
+    "three": "^0.187.0"
+  }
+}
