@@ -1,5 +1,5 @@
 export interface IRenderer {
-    Initialize(): Promise<void>;
-    Render(): void;
-    Dispose(): void;
+  Initialize(): Promise<void>;
+  Render(): void;
+  Dispose(): void;
 }

@@ -1,8 +1,8 @@
 export interface IAudio {
-    Initialize(): Promise<void>;
+  Initialize(): Promise<void>;
 
-    PlaySound(soundId: string): void;
-    StopSound(soundId: string): void;
+  PlaySound(soundId: string): void;
+  StopSound(soundId: string): void;
 
-    Dispose(): void;
+  Dispose(): void;
 }

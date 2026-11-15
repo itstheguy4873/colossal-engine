@@ -1,9 +1,11 @@
-import { Instance } from "./Instance";
+import { Instance } from './Instance';
 
 export abstract class BaseService extends Instance {
-    public get ClassName(): string { return "BaseService"; }
+  public get ClassName(): string {
+    return 'BaseService';
+  }
 
-    constructor(Name: string) {
-        super(Name);
-    }
+  constructor(Name: string) {
+    super(Name);
+  }
 }

@@ -18,7 +18,7 @@
 
 ## Features
 
-* WIP
+- WIP
 
 ## Getting Started
 
@@ -41,7 +41,7 @@ npm run dev
 
 Colossal Engine makes use of the following open source packages:
 
-* [Three.js](https://threejs.org)
+- [Three.js](https://threejs.org)
 
 ## License
 
