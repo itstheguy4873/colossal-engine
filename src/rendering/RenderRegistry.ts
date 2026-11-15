@@ -1,7 +1,7 @@
-import { BasePart } from '../classes/BasePart';
-import { Instance } from '../classes/Instance';
-import { Workspace } from '../classes/Workspace';
-import { Connection } from '../datatypes/Signal';
+import { BasePart } from "../classes/BasePart";
+import { Instance } from "../classes/Instance";
+import { Workspace } from "../classes/Workspace";
+import { Connection } from "../datatypes/Signal";
 
 /**
  * Tracks the BaseParts that are currently inside Workspace.
@@ -12,70 +12,70 @@ import { Connection } from '../datatypes/Signal';
  * after the backend is ready.
  */
 export class RenderRegistry {
-  private static Objects = new Set<BasePart>();
-  private static Connections: Connection[] = [];
-  private static Workspace: Workspace | null = null;
+	private static Objects = new Set<BasePart>();
+	private static Connections: Connection[] = [];
+	private static Workspace: Workspace | null = null;
 
-  public static Initialize(Workspace: Workspace): void {
-    if (this.Workspace === Workspace) return;
+	public static Initialize(Workspace: Workspace): void {
+		if (this.Workspace === Workspace) return;
 
-    this.Reset();
+		this.Reset();
 
-    this.Workspace = Workspace;
+		this.Workspace = Workspace;
 
-    this.Connections.push(
-      Workspace.DescendantAdded.Connect((Descendant) => {
-        if (Descendant instanceof BasePart) {
-          this.Objects.add(Descendant);
-        }
-      }),
-      Workspace.DescendantRemoving.Connect((Descendant) => {
-        if (Descendant instanceof BasePart) {
-          this.Objects.delete(Descendant);
-        }
-      }),
-    );
+		this.Connections.push(
+			Workspace.DescendantAdded.Connect((Descendant) => {
+				if (Descendant instanceof BasePart) {
+					this.Objects.add(Descendant);
+				}
+			}),
+			Workspace.DescendantRemoving.Connect((Descendant) => {
+				if (Descendant instanceof BasePart) {
+					this.Objects.delete(Descendant);
+				}
+			}),
+		);
 
-    for (const Child of Workspace.GetChildren()) {
-      this.AddSubtree(Child);
-    }
-  }
+		for (const Child of Workspace.GetChildren()) {
+			this.AddSubtree(Child);
+		}
+	}
 
-  public static Reset(): void {
-    for (const Item of this.Connections) {
-      Item.Disconnect();
-    }
+	public static Reset(): void {
+		for (const Item of this.Connections) {
+			Item.Disconnect();
+		}
 
-    this.Connections = [];
-    this.Objects.clear();
-    this.Workspace = null;
-  }
+		this.Connections = [];
+		this.Objects.clear();
+		this.Workspace = null;
+	}
 
-  public static GetObjects(): Iterable<BasePart> {
-    return this.Objects;
-  }
+	public static GetObjects(): Iterable<BasePart> {
+		return this.Objects;
+	}
 
-  public static Has(part: BasePart): boolean {
-    return this.Objects.has(part);
-  }
+	public static Has(part: BasePart): boolean {
+		return this.Objects.has(part);
+	}
 
-  public static Unregister(part: BasePart): void {
-    this.Objects.delete(part);
-  }
+	public static Unregister(part: BasePart): void {
+		this.Objects.delete(part);
+	}
 
-  private static AddSubtree(Root: Instance): void {
-    if (Root instanceof BasePart) {
-      this.Objects.add(Root);
-    }
+	private static AddSubtree(Root: Instance): void {
+		if (Root instanceof BasePart) {
+			this.Objects.add(Root);
+		}
 
-    for (const Descendant of Root.GetDescendants()) {
-      if (Descendant instanceof BasePart) {
-        this.Objects.add(Descendant);
-      }
-    }
-  }
+		for (const Descendant of Root.GetDescendants()) {
+			if (Descendant instanceof BasePart) {
+				this.Objects.add(Descendant);
+			}
+		}
+	}
 
-  public static GetWorkspace(): Workspace | null {
-    return this.Workspace;
-  }
+	public static GetWorkspace(): Workspace | null {
+		return this.Workspace;
+	}
 }

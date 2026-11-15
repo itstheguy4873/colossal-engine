@@ -1,27 +1,27 @@
 {
-  "name": "colossal-engine",
-  "version": "1.0.0",
-  "private": true,
-  "description": "Colossal Game Engine",
-  "type": "module",
-  "scripts": {
-    "dev": "vite",
-    "build": "tsc --noEmit && vite build",
-    "preview": "vite preview",
-    "typecheck": "tsc --noEmit",
-    "format": "prettier --write .",
-    "format:check": "prettier --check ."
-  },
-  "keywords": [],
-  "author": "itstheguy4873",
-  "license": "GPL-3.0-only",
-  "devDependencies": {
-    "@types/three": "^0.187.0",
-    "prettier": "^3.10.1",
-    "typescript": "^7.0.2",
-    "vite": "^8.3.8"
-  },
-  "dependencies": {
-    "three": "^0.187.0"
-  }
+	"name": "colossal-engine",
+	"version": "1.0.0",
+	"private": true,
+	"description": "Colossal Game Engine",
+	"type": "module",
+	"scripts": {
+		"dev": "vite",
+		"build": "tsc --noEmit && vite build",
+		"preview": "vite preview",
+		"typecheck": "tsc --noEmit",
+		"format": "prettier --write .",
+		"format:check": "prettier --check ."
+	},
+	"keywords": [],
+	"author": "itstheguy4873",
+	"license": "GPL-3.0-only",
+	"devDependencies": {
+		"@types/three": "^0.187.0",
+		"prettier": "^3.10.1",
+		"typescript": "^7.0.2",
+		"vite": "^8.3.8"
+	},
+	"dependencies": {
+		"three": "^0.187.0"
+	}
 }

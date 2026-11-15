@@ -1,23 +1,23 @@
-import { Engine } from './core/Engine';
-import { InstanceFactory } from './core/Factory';
-import { WebBackend } from './backend/implementations/three/WebBackend';
-import { Part, RunService, UserInputService } from './classes';
-import { Vector3 } from './datatypes/Vector3';
+import { Engine } from "./core/Engine";
+import { InstanceFactory } from "./core/Factory";
+import { WebBackend } from "./backend/implementations/three/WebBackend";
+import { Part, RunService, UserInputService } from "./classes";
+import { Vector3 } from "./datatypes/Vector3";
 
 const sleep = (ms: number): Promise<void> => {
-  return new Promise((resolve) => setTimeout(resolve, ms));
+	return new Promise((resolve) => setTimeout(resolve, ms));
 };
 
-const container = document.querySelector<HTMLElement>('#app');
-if (!container) throw new Error('Missing #app container');
+const container = document.querySelector<HTMLElement>("#app");
+if (!container) throw new Error("Missing #app container");
 
-const engine = new Engine('Colossal Engine', new WebBackend(container));
+const engine = new Engine("Colossal Engine", new WebBackend(container));
 
 const game = engine.DataModel;
-const workspace = game.GetService('Workspace');
-const runService = game.GetService<RunService>('RunService');
+const workspace = game.GetService("Workspace");
+const runService = game.GetService<RunService>("RunService");
 
-const test = InstanceFactory.new('Part') as Part;
+const test = InstanceFactory.new("Part") as Part;
 
 test.Size = new Vector3(2, 2, 2);
 test.Parent = workspace;
@@ -29,21 +29,21 @@ console.log("Test's ClassName is:", test.ClassName);
 console.log("DataModel's children are:");
 
 for (const child of game.GetChildren()) {
-  console.log(child.Name);
+	console.log(child.Name);
 }
 
-console.log('Test is an Instance?', test.IsA('Instance'));
-console.log('Test is a BasePart?', test.IsA('BasePart'));
-console.log('Test is a DataModel?', test.IsA('DataModel'));
-console.log('DataModel is a DataModel?', game.IsA('DataModel'));
+console.log("Test is an Instance?", test.IsA("Instance"));
+console.log("Test is a BasePart?", test.IsA("BasePart"));
+console.log("Test is a DataModel?", test.IsA("DataModel"));
+console.log("DataModel is a DataModel?", game.IsA("DataModel"));
 
 console.log("Workspace's name is:", workspace.Name);
 
 test.Size = new Vector3(5, 1, 5);
 test.CFrame.Rotation = new Vector3(0, 0, 0);
 
-const test2 = InstanceFactory.new('Part') as Part;
-test2.Parent = game.GetService('RunService');
+const test2 = InstanceFactory.new("Part") as Part;
+test2.Parent = game.GetService("RunService");
 
 test2.CFrame.Position = new Vector3(0, 10, -10);
 
@@ -53,31 +53,31 @@ await sleep(1000);
 
 test2.Parent = test;
 
-const userInput = game.GetService<UserInputService>('UserInputService');
+const userInput = game.GetService<UserInputService>("UserInputService");
 
 const camera = workspace.CurrentCamera;
 
 runService.Heartbeat.Connect((DeltaTime: number) => {
-  const Speed = 8;
+	const Speed = 8;
 
-  let X = 0;
-  let Y = 0;
-  let Z = 0;
+	let X = 0;
+	let Y = 0;
+	let Z = 0;
 
-  if (userInput.IsKeyDown('KeyW')) Z -= 1;
-  if (userInput.IsKeyDown('KeyS')) Z += 1;
-  if (userInput.IsKeyDown('KeyA')) X -= 1;
-  if (userInput.IsKeyDown('KeyD')) X += 1;
-  if (userInput.IsKeyDown('Space')) Y += 1;
-  if (userInput.IsKeyDown('ShiftLeft')) Y -= 1;
+	if (userInput.IsKeyDown("KeyW")) Z -= 1;
+	if (userInput.IsKeyDown("KeyS")) Z += 1;
+	if (userInput.IsKeyDown("KeyA")) X -= 1;
+	if (userInput.IsKeyDown("KeyD")) X += 1;
+	if (userInput.IsKeyDown("Space")) Y += 1;
+	if (userInput.IsKeyDown("ShiftLeft")) Y -= 1;
 
-  if (X === 0 && Y === 0 && Z === 0) return;
+	if (X === 0 && Y === 0 && Z === 0) return;
 
-  const Length = Math.sqrt(X * X + Y * Y + Z * Z);
+	const Length = Math.sqrt(X * X + Y * Y + Z * Z);
 
-  test.CFrame.Position = test.CFrame.Position.Add(
-    new Vector3(X / Length, Y / Length, Z / Length).Multiply(Speed * DeltaTime),
-  );
+	test.CFrame.Position = test.CFrame.Position.Add(
+		new Vector3(X / Length, Y / Length, Z / Length).Multiply(Speed * DeltaTime),
+	);
 
-  camera.CFrame.Position = test.CFrame.Position.Add(new Vector3(0, 6, 10));
+	camera.CFrame.Position = test.CFrame.Position.Add(new Vector3(0, 6, 10));
 });

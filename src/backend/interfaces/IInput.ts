@@ -1,10 +1,10 @@
 export interface IInput {
-  Initialize(): void;
+	Initialize(): void;
 
-  IsKeyDown(key: string): boolean;
-  IsMouseButtonDown(button: number): boolean;
+	IsKeyDown(key: string): boolean;
+	IsMouseButtonDown(button: number): boolean;
 
-  GetMousePosition(): { X: number; Y: number };
+	GetMousePosition(): { X: number; Y: number };
 
-  Dispose(): void;
+	Dispose(): void;
 }

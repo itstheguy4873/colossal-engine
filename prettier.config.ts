@@ -1,15 +1,15 @@
-import { type Config } from 'prettier';
+import { type Config } from "prettier";
 
 const config: Config = {
-  printWidth: 100,
-  tabWidth: 2,
-  useTabs: false,
-  semi: true,
-  singleQuote: true,
-  trailingComma: 'all',
-  bracketSpacing: true,
-  arrowParens: 'always',
-  endOfLine: 'lf',
+	printWidth: 100,
+	tabWidth: 4,
+	useTabs: true,
+	semi: true,
+	singleQuote: false,
+	trailingComma: "all",
+	bracketSpacing: true,
+	arrowParens: "always",
+	endOfLine: "lf",
 };
 
 export default config;
