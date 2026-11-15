@@ -55,6 +55,8 @@ test2.Parent = test;
 
 const userInput = game.GetService<UserInputService>('UserInputService');
 
+const camera = workspace.CurrentCamera;
+
 runService.Heartbeat.Connect((DeltaTime: number) => {
   const Speed = 8;
 
@@ -76,4 +78,6 @@ runService.Heartbeat.Connect((DeltaTime: number) => {
   test.CFrame.Position = test.CFrame.Position.Add(
     new Vector3(X / Length, Y / Length, Z / Length).Multiply(Speed * DeltaTime),
   );
+
+  camera.CFrame.Position = test.CFrame.Position.Add(new Vector3(0, 6, 10));
 });

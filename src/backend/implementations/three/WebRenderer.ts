@@ -54,6 +54,7 @@ export class WebRenderer implements IRenderer {
   public Render(): void {
     if (this.isDisposed) return;
 
+    this.syncCamera();
     this.syncScene();
 
     this.renderer.render(this.scene, this.camera);
@@ -117,4 +118,27 @@ export class WebRenderer implements IRenderer {
     this.camera.updateProjectionMatrix();
     this.renderer.setSize(width, height);
   };
+  
+  private syncCamera(): void {
+  const ActiveCamera = RenderRegistry.GetWorkspace()?.CurrentCamera;
+
+  if (!ActiveCamera) return;
+
+  this.camera.position.set(
+    ActiveCamera.CFrame.Position.X,
+    ActiveCamera.CFrame.Position.Y,
+    ActiveCamera.CFrame.Position.Z,
+  );
+
+  this.camera.rotation.set(
+    ActiveCamera.CFrame.Rotation.X,
+    ActiveCamera.CFrame.Rotation.Y,
+    ActiveCamera.CFrame.Rotation.Z,
+  );
+
+  if (this.camera.fov !== ActiveCamera.FieldOfView) {
+    this.camera.fov = ActiveCamera.FieldOfView;
+    this.camera.updateProjectionMatrix();
+  }
+}
 }

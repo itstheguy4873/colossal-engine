@@ -74,4 +74,8 @@ export class RenderRegistry {
       }
     }
   }
+
+  public static GetWorkspace(): Workspace | null {
+    return this.Workspace;
+  }
 }
