@@ -17,7 +17,7 @@ No test suite exists — verify changes with `npm run typecheck`, `npm run build
 - Everything is LF (`* text=auto eol=lf`). If `git status` shows the whole tree modified, the working copy has CRLF — run `npm run format` instead of committing line-ending churn.
 - Indentation is **tabs**, not spaces. Hand-written spaces fail `format:check` and get rewritten by `format`.
 - `InstanceFactory.new("X")` and `IsA` resolve classes by name (`Classes[X]`, `constructor.name`). A class must be exported from `classes/index.ts` or `new`/`GetService` throws `Unknown class`. Renaming classes or minifying with name mangling breaks both.
-- `DataModel.GetService<T>` defaults `T` to `BaseService`, so `GetService("Workspace")` is typed `BaseService` and property access fails. Always pass the type: `GetService<Workspace>("Workspace")`.
+- `DataModel.GetService` types itself from the `classes/index.ts` barrel: `GetService("Workspace")` returns `Workspace` with no type argument, and the name is checked against the concrete `BaseService` subclasses exported there. The barrel is therefore load-bearing for types as well as for `InstanceFactory` name lookups. A `GetService<T>("NonBarrelName")` overload still accepts explicit types and dynamic strings.
 
 ## Layout
 
