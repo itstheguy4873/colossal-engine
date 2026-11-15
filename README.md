@@ -10,15 +10,15 @@
   <h3>A 2D and 3D game engine for Roblox developers</h3>
 
   <p>
-    <img src="https://img.shields.io/github/v/release/itstheguy4873/colossal-engine?label=version">
-    <img src="https://img.shields.io/badge/license-GPL--3.0-blue">
-    <img src="https://img.shields.io/badge/language-TypeScript-3178C6">
+    <a href="https://github.com/itstheguy4873/colossal-engine/releases"><img src="https://img.shields.io/github/v/release/itstheguy4873/colossal-engine?include_prereleases&label=version" alt="Latest Release"></a>
+    <a href="https://github.com/itstheguy4873/colossal-engine/blob/master/LICENSE"><img src="https://img.shields.io/badge/license-GPL--3.0-blue" alt="GPL-3.0 License"></a>
+    <img src="https://img.shields.io/badge/language-TypeScript-3178C6" alt="TypeScript">
   </p>
 </div>
 
 ## Features
 
-- WIP
+Features are currently under development and will be documented as they become available.
 
 ## Getting Started
 
@@ -37,11 +37,20 @@ npm install
 npm run dev
 ```
 
+## Project Status
+
+Colossal Engine is currently in active development.
+
+Expect breaking changes, incomplete features,
+and evolving APIs until the first stable release.
+
 ## Credits
 
 Colossal Engine makes use of the following open source packages:
 
 - [Three.js](https://threejs.org)
+
+See [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md) for more information.
 
 ## License
 
