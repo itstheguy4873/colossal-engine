@@ -43,6 +43,8 @@ Colossal Engine makes use of the following open source packages:
 
 - [Three.js](https://threejs.org)
 
+See [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md) for more information.
+
 ## License
 
 Colossal Engine is licensed under the
