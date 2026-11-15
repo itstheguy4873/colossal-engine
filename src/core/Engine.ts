@@ -1,8 +1,5 @@
 import { DataModel } from "../classes";
 import { IBackend } from "../backend/interfaces/IBackend";
-import { RunService } from "../classes";
-import { UserInputService } from "../classes";
-import { Workspace } from "../classes";
 import { RenderRegistry } from "../rendering/RenderRegistry";
 
 export class Engine {
@@ -26,13 +23,13 @@ export class Engine {
 
 		await this.Backend.Initialize();
 
-		RenderRegistry.Initialize(this.DataModel.GetService<Workspace>("Workspace"));
+		RenderRegistry.Initialize(this.DataModel.GetService("Workspace"));
 
-		this.DataModel.GetService<UserInputService>("UserInputService").Attach(this.Backend.Input);
+		this.DataModel.GetService("UserInputService").Attach(this.Backend.Input);
 
 		document.title = this.Name;
 
-		const RunService = this.DataModel.GetService<RunService>("RunService");
+		const RunService = this.DataModel.GetService("RunService");
 
 		this.running = true;
 		this.lastFrameTime = performance.now();
@@ -50,7 +47,7 @@ export class Engine {
 		const DeltaTime = (Time - this.lastFrameTime) / 1000;
 		this.lastFrameTime = Time;
 
-		const RunService = this.DataModel.GetService<RunService>("RunService");
+		const RunService = this.DataModel.GetService("RunService");
 
 		RunService.Step(DeltaTime);
 
@@ -66,7 +63,7 @@ export class Engine {
 
 		this.running = false;
 
-		this.DataModel.GetService<RunService>("RunService").Stop();
+		this.DataModel.GetService("RunService").Stop();
 
 		RenderRegistry.Reset();
 
@@ -75,7 +72,7 @@ export class Engine {
 			this.animationFrameId = null;
 		}
 
-		this.DataModel.GetService<UserInputService>("UserInputService").Detach();
+		this.DataModel.GetService("UserInputService").Detach();
 
 		this.Backend.Dispose();
 

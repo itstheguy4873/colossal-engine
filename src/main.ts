@@ -1,7 +1,7 @@
 import { Engine } from "./core/Engine";
 import { InstanceFactory } from "./core/Factory";
 import { WebBackend } from "./backend/implementations/three/WebBackend";
-import { Part, RunService, UserInputService } from "./classes";
+import { Part } from "./classes";
 import { Vector3 } from "./datatypes/Vector3";
 
 const sleep = (ms: number): Promise<void> => {
@@ -15,7 +15,7 @@ const engine = new Engine("Colossal Engine", new WebBackend(container));
 
 const game = engine.DataModel;
 const workspace = game.GetService("Workspace");
-const runService = game.GetService<RunService>("RunService");
+const runService = game.GetService("RunService");
 
 const test = InstanceFactory.new("Part") as Part;
 
@@ -53,7 +53,7 @@ await sleep(1000);
 
 test2.Parent = test;
 
-const userInput = game.GetService<UserInputService>("UserInputService");
+const userInput = game.GetService("UserInputService");
 
 const camera = workspace.CurrentCamera;
 

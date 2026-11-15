@@ -1,19 +1,30 @@
-import { Instance } from "./Instance";
-import { BaseService } from "./BaseService";
+import * as Classes from "./index";
 import { InstanceFactory } from "../core/Factory";
 
-export class DataModel extends Instance {
+type Concrete<T> = T extends new (...args: any) => infer R ? R : never;
+
+type ServiceMap = {
+	[Name in keyof typeof Classes as Concrete<(typeof Classes)[Name]> extends Classes.BaseService
+		? Name
+		: never]: Concrete<(typeof Classes)[Name]>;
+};
+
+type ServiceName = keyof ServiceMap;
+
+export class DataModel extends Classes.Instance {
 	public get ClassName(): string {
 		return "DataModel";
 	}
 
-	private readonly Services = new Map<string, BaseService>();
+	private readonly Services = new Map<string, Classes.BaseService>();
 
 	constructor(Name: string) {
 		super(Name);
 	}
 
-	public GetService<T extends BaseService = BaseService>(serviceName: string): T {
+	public GetService<Name extends ServiceName>(serviceName: Name): ServiceMap[Name];
+	public GetService<T extends Classes.BaseService = Classes.BaseService>(serviceName: string): T;
+	public GetService<T extends Classes.BaseService = Classes.BaseService>(serviceName: string): T {
 		const existing = this.Services.get(serviceName);
 
 		if (existing) {
@@ -22,7 +33,7 @@ export class DataModel extends Instance {
 
 		const service = InstanceFactory.new(serviceName);
 
-		if (!(service instanceof BaseService)) {
+		if (!(service instanceof Classes.BaseService)) {
 			throw new Error(`'${serviceName}' is not a Service.`);
 		}
 
