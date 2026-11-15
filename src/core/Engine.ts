@@ -28,6 +28,8 @@ export class Engine {
 
     RenderRegistry.Initialize(this.DataModel.GetService<Workspace>('Workspace'));
 
+    this.DataModel.GetService<UserInputService>('UserInputService').Attach(this.Backend.Input);
+
     document.title = this.Name;
 
     const RunService = this.DataModel.GetService<RunService>('RunService');
@@ -49,7 +51,6 @@ export class Engine {
     this.lastFrameTime = Time;
 
     const RunService = this.DataModel.GetService<RunService>('RunService');
-    const UserInputService = this.DataModel.GetService<UserInputService>('UserInputService');
 
     RunService.Step(DeltaTime);
 
@@ -73,6 +74,8 @@ export class Engine {
       cancelAnimationFrame(this.animationFrameId);
       this.animationFrameId = null;
     }
+
+    this.DataModel.GetService<UserInputService>('UserInputService').Detach();
 
     this.Backend.Dispose();
 

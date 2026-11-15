@@ -5,11 +5,11 @@ export class WebAudio implements IAudio {
     // TODO: Initialize Web Audio API
   }
 
-  public PlaySound(soundId: string): void {
+  public PlaySound(_soundId: string): void {
     // TODO: Play sound
   }
 
-  public StopSound(soundId: string): void {
+  public StopSound(_soundId: string): void {
     // TODO: Stop sound
   }
 

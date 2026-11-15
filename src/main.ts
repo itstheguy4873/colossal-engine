@@ -1,11 +1,8 @@
 import { Engine } from './core/Engine';
 import { InstanceFactory } from './core/Factory';
 import { WebBackend } from './backend/implementations/three/WebBackend';
-import { Part } from './classes/Part';
+import { Part, RunService, UserInputService } from './classes';
 import { Vector3 } from './datatypes/Vector3';
-import { CFrame } from './datatypes/CFrame';
-import { RunService } from './classes';
-import { PartType } from './enums/PartType';
 
 const sleep = (ms: number): Promise<void> => {
   return new Promise((resolve) => setTimeout(resolve, ms));
@@ -56,22 +53,27 @@ await sleep(1000);
 
 test2.Parent = test;
 
-const floatHeight = 2;
-const floatSpeed = 2;
-const startY = test2.CFrame.Position.Y;
-
-let elapsedTime = 0;
+const userInput = game.GetService<UserInputService>('UserInputService');
 
 runService.Heartbeat.Connect((DeltaTime: number) => {
-  const RotationSpeed = 1;
+  const Speed = 8;
 
-  test.CFrame.Rotation = test.CFrame.Rotation.Add(
-    new Vector3(RotationSpeed * DeltaTime, RotationSpeed * DeltaTime, RotationSpeed * DeltaTime),
+  let X = 0;
+  let Y = 0;
+  let Z = 0;
+
+  if (userInput.IsKeyDown('KeyW')) Z -= 1;
+  if (userInput.IsKeyDown('KeyS')) Z += 1;
+  if (userInput.IsKeyDown('KeyA')) X -= 1;
+  if (userInput.IsKeyDown('KeyD')) X += 1;
+  if (userInput.IsKeyDown('Space')) Y += 1;
+  if (userInput.IsKeyDown('ShiftLeft')) Y -= 1;
+
+  if (X === 0 && Y === 0 && Z === 0) return;
+
+  const Length = Math.sqrt(X * X + Y * Y + Z * Z);
+
+  test.CFrame.Position = test.CFrame.Position.Add(
+    new Vector3(X / Length, Y / Length, Z / Length).Multiply(Speed * DeltaTime),
   );
-
-  elapsedTime += DeltaTime;
-
-  const newY = startY + Math.sin(elapsedTime * floatSpeed) * floatHeight;
-
-  test2.CFrame.Position = new Vector3(test2.CFrame.Position.X, newY, test2.CFrame.Position.Z);
 });

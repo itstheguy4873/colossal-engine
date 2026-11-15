@@ -1,43 +1,30 @@
 import { BaseService } from './BaseService';
+import type { IInput } from '../backend/interfaces/IInput';
 
 export class UserInputService extends BaseService {
   public get ClassName(): string {
     return 'UserInputService';
   }
 
-  public _currentKeys: Set<string>;
+  private Input: IInput | null = null;
 
-  constructor(Name: string) {
-    super(Name);
-
-    this._currentKeys = new Set();
-
-    window.addEventListener('keydown', this._onKeyDown);
-    window.addEventListener('keyup', this._onKeyUp);
-    window.addEventListener('blur', this._onBlur);
+  public Attach(Input: IInput): void {
+    this.Input = Input;
   }
 
-  private _onKeyDown = (event: KeyboardEvent): void => {
-    this._setKeyEnabled(event.code, true);
-  };
-
-  private _onKeyUp = (event: KeyboardEvent): void => {
-    this._setKeyEnabled(event.code, false);
-  };
-
-  private _onBlur = (): void => {
-    this._currentKeys.clear();
-  };
-
-  public _setKeyEnabled(Key: string, Enabled: boolean): void {
-    if (Enabled) {
-      this._currentKeys.add(Key);
-    } else {
-      this._currentKeys.delete(Key);
-    }
+  public Detach(): void {
+    this.Input = null;
   }
 
   public IsKeyDown(Key: string): boolean {
-    return this._currentKeys.has(Key);
+    return this.Input?.IsKeyDown(Key) ?? false;
+  }
+
+  public IsMouseButtonDown(Button: number): boolean {
+    return this.Input?.IsMouseButtonDown(Button) ?? false;
+  }
+
+  public GetMousePosition(): { X: number; Y: number } {
+    return this.Input?.GetMousePosition() ?? { X: 0, Y: 0 };
   }
 }
