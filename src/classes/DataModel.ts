@@ -4,9 +4,11 @@ import { InstanceFactory } from "../core/Factory";
 type Concrete<T> = T extends new (...args: any) => infer R ? R : never;
 
 type ServiceMap = {
-	[Name in keyof typeof Classes as Concrete<(typeof Classes)[Name]> extends Classes.BaseService
-		? Name
-		: never]: Concrete<(typeof Classes)[Name]>;
+	[
+		Name in keyof typeof Classes as Concrete<(typeof Classes)[Name]> extends Classes.BaseService
+			? Name
+			: never
+	]: Concrete<(typeof Classes)[Name]>;
 };
 
 type ServiceName = keyof ServiceMap;
