@@ -60,6 +60,10 @@ export class WebRenderer implements IRenderer {
 		this.renderer.render(this.scene, this.camera);
 	}
 
+	public RenderUI(): void {
+		console.error("UI isn't implemented yet")
+	}
+
 	private syncScene(): void {
 		const present = new Set<BasePart>();
 
