@@ -7,4 +7,5 @@ export * from "./BaseService";
 export * from "./Workspace";
 export * from "./RunService";
 export * from "./UserInputService";
+export * from "./CoreGui";
 export * from "./Camera";

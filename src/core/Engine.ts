@@ -39,6 +39,8 @@ export class Engine {
 		console.log("Engine started!");
 
 		this.animationFrameId = requestAnimationFrame(this.tick);
+
+		const CoreGui = this.DataModel.GetService("CoreGui");
 	}
 
 	private tick = (Time: number): void => {
