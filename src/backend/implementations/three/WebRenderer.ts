@@ -14,7 +14,6 @@ export class WebRenderer implements IRenderer {
 
 	private isDisposed: boolean = false;
 	private meshes = new Map<BasePart, THREE.Mesh>();
-	private material = new THREE.MeshStandardMaterial({ color: 0x00aaff });
 
 	constructor(container: HTMLElement) {
 		this.container = container;
@@ -69,9 +68,10 @@ export class WebRenderer implements IRenderer {
 			const geometry = GetPartGeometry(part instanceof Part ? part.PartType : PartType.Block);
 
 			let mesh = this.meshes.get(part);
+			let material = new THREE.MeshStandardMaterial({ color: part.Color.ToHex() });
 
 			if (!mesh) {
-				mesh = new THREE.Mesh(geometry, this.material);
+				mesh = new THREE.Mesh(geometry, material);
 				this.scene.add(mesh);
 				this.meshes.set(part, mesh);
 			} else if (mesh.geometry !== geometry) {
@@ -112,7 +112,6 @@ export class WebRenderer implements IRenderer {
 		this.scene.clear();
 
 		DisposePartGeometries();
-		this.material.dispose();
 		this.renderer.dispose();
 	}
 
