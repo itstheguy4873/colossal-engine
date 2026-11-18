@@ -69,7 +69,7 @@ It also takes inspiration from:
 | :---------: | ------------------------------------------------------------- |
 |  Finished   | Implement basic `Instance` functionality                      |
 |  Finished   | Implement `UserInputService` and `RunService`                 |
-| In progress | Get UI working                                                |
+|  Finished   | Get UI working                                                |
 |  Not done   | Implement scripting in TypeScript and Lua                     |
 |  Not done   | Implement an editor for games                                 |
 |  Not done   | Make games serializable                                       |
