@@ -20,15 +20,13 @@
   </p>
 </div>
 
-
 ## About
 
 Colossal is a standalone 2D and 3D game engine for Roblox developers.
 
-* Colossal features a familiar Instance-based API, making it easy to pick up.
-* Colossal aims to support TypeScript and Lua scripting, alongside an extensible plugin system.
-* Colossal is multi-platform and web-based, without being tied to a single ecosystem.
-
+- Colossal features a familiar Instance-based API, making it easy to pick up.
+- Colossal aims to support TypeScript and Lua scripting, alongside an extensible plugin system.
+- Colossal is multi-platform and web-based, without being tied to a single ecosystem.
 
 ## Getting Started
 
@@ -54,30 +52,30 @@ Colossal Engine is currently in active development, and many features and APIs w
 
 Colossal is built with the help of these open source packages:
 
-* [Three.js](https://threejs.org)
+- [Three.js](https://threejs.org)
 
 See [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md) for more information.
 
 It also takes inspiration from:
 
-| Project | Info |
-| --- | --- |
+| Project                                                          | Info                         |
+| ---------------------------------------------------------------- | ---------------------------- |
 | [Gargantuan Engine](https://github.com/rniraclefire/gargantuan/) | Original idea for the engine |
-| [Roblox Creator Documentation](https://create.roblox.com) | Inspiration for the APIs |
+| [Roblox Creator Documentation](https://create.roblox.com)        | Inspiration for the APIs     |
 
 ## Roadmap
 
-| Status | Feature |
-|:------:|---------|
-| Finished | Implement basic `Instance` functionality |
-| Finished | Implement `UserInputService` and `RunService` |
-| In progress | Get UI working |
-| Not done | Implement scripting in TypeScript and Lua |
-| Not done | Implement an editor for games |
-| Not done | Make games serializable |
-| Not done | Implement a character system |
-| Not done | Implement a scene system |
-| Not done | Distribute native binaries via [Tauri](https://v2.tauri.app/) |
+|   Status    | Feature                                                       |
+| :---------: | ------------------------------------------------------------- |
+|  Finished   | Implement basic `Instance` functionality                      |
+|  Finished   | Implement `UserInputService` and `RunService`                 |
+| In progress | Get UI working                                                |
+|  Not done   | Implement scripting in TypeScript and Lua                     |
+|  Not done   | Implement an editor for games                                 |
+|  Not done   | Make games serializable                                       |
+|  Not done   | Implement a character system                                  |
+|  Not done   | Implement a scene system                                      |
+|  Not done   | Distribute native binaries via [Tauri](https://v2.tauri.app/) |
 
 ## License
 

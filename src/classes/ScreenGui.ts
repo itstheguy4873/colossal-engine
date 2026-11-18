@@ -1,11 +1,11 @@
 import { LayerCollector } from "./LayerCollector";
 
 export class ScreenGui extends LayerCollector {
-    public get ClassName(): string {
-        return "ScreenGui";
-    }
+	public get ClassName(): string {
+		return "ScreenGui";
+	}
 
-    constructor(Name: string) {
-        super(Name);
-    }
+	constructor(Name: string) {
+		super(Name);
+	}
 }

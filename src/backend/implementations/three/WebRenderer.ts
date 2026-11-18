@@ -61,7 +61,7 @@ export class WebRenderer implements IRenderer {
 	}
 
 	public RenderUI(): void {
-		console.error("UI isn't implemented yet")
+		console.error("UI isn't implemented yet");
 	}
 
 	private syncScene(): void {

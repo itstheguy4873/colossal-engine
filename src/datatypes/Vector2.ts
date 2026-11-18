@@ -1,7 +1,7 @@
 export class Vector2 {
 	constructor(
 		public X: number,
-		public Y: number
+		public Y: number,
 	) {}
 
 	public Add(Other: Vector2): Vector2 {

@@ -1,7 +1,7 @@
 import { BaseService } from "./BaseService";
 
 export class CoreGui extends BaseService {
-    public get ClassName(): string {
-        return "CoreGui";
-    }
+	public get ClassName(): string {
+		return "CoreGui";
+	}
 }

@@ -12,9 +12,9 @@ import { ScreenGui } from "../classes/ScreenGui";
  * on Workspace) rather than by construction, so a part only becomes renderable
  * once it is actually parented into Workspace. Initialize is called by Engine
  * after the backend is ready.
- * 
+ *
  * this also handles ui rendering by:
- * 
+ *
  * connecting to DescendantAdded and DescendantRemoving in CoreGui for ScreenGui
  * passing the ScreenGui to the renderer so it can render
  */
@@ -25,12 +25,14 @@ export class RenderRegistry {
 	private static Workspace: Workspace | null = null;
 	private static CoreGui: CoreGui | null = null;
 
-	public static Initialize(Workspace: Workspace): void {
+	public static Initialize(Workspace: Workspace, CoreGui: CoreGui): void {
 		if (this.Workspace === Workspace) return;
 
 		this.Reset();
 
 		this.Workspace = Workspace;
+
+		this.InitializeUI(CoreGui);
 
 		this.Connections.push(
 			Workspace.DescendantAdded.Connect((Descendant) => {
@@ -50,10 +52,8 @@ export class RenderRegistry {
 		}
 	}
 
-	public static InitializeUI(CoreGui: CoreGui): void {
+	private static InitializeUI(CoreGui: CoreGui): void {
 		if (this.CoreGui === CoreGui) return;
-
-		this.Reset();
 
 		this.CoreGui = CoreGui;
 

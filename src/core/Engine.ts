@@ -23,8 +23,10 @@ export class Engine {
 
 		await this.Backend.Initialize();
 
-		RenderRegistry.Initialize(this.DataModel.GetService("Workspace"));
-		RenderRegistry.InitializeUI(this.DataModel.GetService("CoreGui"));
+		RenderRegistry.Initialize(
+			this.DataModel.GetService("Workspace"),
+			this.DataModel.GetService("CoreGui"),
+		);
 
 		this.DataModel.GetService("UserInputService").Attach(this.Backend.Input);
 
