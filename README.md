@@ -5,18 +5,18 @@
     <img src="./repo/logos/logo_light.svg" alt="Colossal Engine logo">
   </picture>
   <br>
-  <picture>
-    <source media="(prefers-color-scheme: dark)" srcset="./repo/logos/title_dark.svg">
-    <source media="(prefers-color-scheme: light)" srcset="./repo/logos/title_light.svg">
-    <img src="./repo/logos/title_light.svg" alt="Colossal Engine">
-  </picture>
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="./repo/logos/title_dark.svg">
+  <source media="(prefers-color-scheme: light)" srcset="./repo/logos/title_light.svg">
+  <img src="./repo/logos/title_light.svg" alt="Colossal Engine" width="400">
+</picture>
 
   <h3>A web-based 2D and 3D game engine</h3>
 
   <p>
-    <a href="https://github.com/itstheguy4873/colossal-engine/releases"><img src="https://img.shields.io/github/v/release/itstheguy4873/colossal-engine?include_prereleases&label=version" alt="Latest release"></a>
-    <a href="https://github.com/itstheguy4873/colossal-engine/blob/master/LICENSE"><img src="https://img.shields.io/badge/license-GPL--3.0-blue" alt="GPL-3.0 license"></a>
-    <img src="https://img.shields.io/badge/language-TypeScript-3178C6" alt="TypeScript">
+    <a href="https://github.com/itstheguy4873/colossal-engine/releases"><img src="https://img.shields.io/github/v/release/itstheguy4873/colossal-engine?include_prereleases&label=version&logo=github&logoColor=white&style=flat-square" alt="Latest release"></a>
+    <a href="https://github.com/itstheguy4873/colossal-engine/blob/master/LICENSE"><img src="https://img.shields.io/badge/license-GPL--3.0-blue?logo=opensourceinitiative&logoColor=white&style=flat-square" alt="GPL-3.0 license"></a>
+    <a href="https://www.typescriptlang.org/"><img src="https://img.shields.io/badge/language-TypeScript-3178C6?logo=typescript&logoColor=white&style=flat-square" alt="TypeScript"></a>
   </p>
 </div>
 
