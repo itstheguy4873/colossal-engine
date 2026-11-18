@@ -24,6 +24,7 @@ export class Engine {
 		await this.Backend.Initialize();
 
 		RenderRegistry.Initialize(this.DataModel.GetService("Workspace"));
+		RenderRegistry.InitializeUI(this.DataModel.GetService("CoreGui"));
 
 		this.DataModel.GetService("UserInputService").Attach(this.Backend.Input);
 
@@ -39,8 +40,6 @@ export class Engine {
 		console.log("Engine started!");
 
 		this.animationFrameId = requestAnimationFrame(this.tick);
-
-		const CoreGui = this.DataModel.GetService("CoreGui");
 	}
 
 	private tick = (Time: number): void => {
