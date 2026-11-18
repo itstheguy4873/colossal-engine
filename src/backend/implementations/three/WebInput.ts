@@ -1,5 +1,18 @@
 import { IInput } from "../../interfaces/IInput";
 
+const IsTypingTarget = (Target: EventTarget | null): boolean => {
+	if (!(Target instanceof HTMLElement)) return false;
+
+	if (Target.isContentEditable) return true;
+
+	return (
+		Target.tagName === "INPUT" || Target.tagName === "TEXTAREA" || Target.tagName === "SELECT"
+	);
+};
+
+const IsGuiTarget = (Target: EventTarget | null): boolean =>
+	Target instanceof Element && Target.closest("[data-colossal-ui]") !== null;
+
 export class WebInput implements IInput {
 	private targetElement: HTMLElement;
 	private keysDown: Set<string> = new Set();
@@ -55,6 +68,10 @@ export class WebInput implements IInput {
 	}
 
 	private onKeyDown = (event: KeyboardEvent): void => {
+		// Typing in a GUI text field must not drive game input. Key-up is still
+		// recorded below so a key held before focusing cannot get stuck down.
+		if (IsTypingTarget(event.target)) return;
+
 		this.keysDown.add(event.code);
 	};
 
@@ -63,6 +80,9 @@ export class WebInput implements IInput {
 	};
 
 	private onMouseDown = (event: MouseEvent): void => {
+		// Clicks on interactive UI belong to the GUI, not to the camera/parts.
+		if (IsGuiTarget(event.target)) return;
+
 		this.mouseButtonsDown.add(event.button);
 	};
 

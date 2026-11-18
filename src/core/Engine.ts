@@ -1,6 +1,7 @@
 import { DataModel } from "../classes";
 import { IBackend } from "../backend/interfaces/IBackend";
 import { RenderRegistry } from "../rendering/RenderRegistry";
+import { UiRegistry } from "../rendering/UiRegistry";
 
 export class Engine {
 	private running = false;
@@ -23,9 +24,11 @@ export class Engine {
 
 		await this.Backend.Initialize();
 
-		RenderRegistry.Initialize(
-			this.DataModel.GetService("Workspace"),
+		RenderRegistry.Initialize(this.DataModel.GetService("Workspace"));
+
+		UiRegistry.Initialize(
 			this.DataModel.GetService("CoreGui"),
+			this.DataModel.GetService("PlayerGui"),
 		);
 
 		this.DataModel.GetService("UserInputService").Attach(this.Backend.Input);
@@ -55,6 +58,7 @@ export class Engine {
 		RunService.Step(DeltaTime);
 
 		this.Backend.Renderer.Render();
+		this.Backend.Gui.Render();
 
 		RunService.PostStep(DeltaTime);
 
@@ -69,6 +73,7 @@ export class Engine {
 		this.DataModel.GetService("RunService").Stop();
 
 		RenderRegistry.Reset();
+		UiRegistry.Reset();
 
 		if (this.animationFrameId !== null) {
 			cancelAnimationFrame(this.animationFrameId);
