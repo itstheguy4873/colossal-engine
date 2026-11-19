@@ -13,6 +13,6 @@ export abstract class BasePart extends PVInstance {
 		super(Name);
 
 		this.Size = new Vector3(4, 1, 2);
-		this.Color = new Color3(0, 0, 0);
+		this.Color = new Color3(163, 162, 165);
 	}
 }

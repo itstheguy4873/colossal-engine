@@ -12,7 +12,7 @@ import { TextXAlignment, TextYAlignment } from "../../../classes/TextAlignment";
 import { Color3 } from "../../../datatypes/Color3";
 import { UDim } from "../../../datatypes/UDim";
 import { Vector2 } from "../../../datatypes/Vector2";
-import { UiRegistry } from "../../../rendering/UiRegistry";
+import { UIRegistry } from "../../../rendering/UIRegistry";
 
 type StyleMap = Record<string, string>;
 
@@ -154,8 +154,8 @@ export class WebUi implements IGui {
 		const Live = new Set<Instance>();
 		const ActiveContainers = new Set<Instance>();
 
-		for (const Screen of UiRegistry.GetRoots()) {
-			const Container = UiRegistry.GetContainer(Screen);
+		for (const Screen of UIRegistry.GetRoots()) {
+			const Container = UIRegistry.GetContainer(Screen);
 
 			if (!Container) continue;
 

@@ -11,7 +11,7 @@ import { Connection } from "../datatypes/Signal";
  * once it is actually parented into Workspace. Initialize is called by Engine
  * after the backend is ready.
  *
- * UI lives in UiRegistry, not here: sharing one registry meant initializing UI
+ * UI lives in UIRegistry, not here: sharing one registry meant initializing UI
  * reset the Workspace handle, which left the camera unsynced and the scene
  * empty.
  */

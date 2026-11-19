@@ -15,7 +15,7 @@ import { Connection } from "../datatypes/Signal";
  * independent lifetimes, and sharing one reset was clearing the Workspace
  * handle that the camera reads.
  */
-export class UiRegistry {
+export class UIRegistry {
 	private static Containers = new Set<Instance>();
 	private static Roots = new Set<ScreenGui>();
 	private static Connections: Connection[] = [];

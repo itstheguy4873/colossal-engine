@@ -1,7 +1,7 @@
 import { DataModel } from "../classes";
 import { IBackend } from "../backend/interfaces/IBackend";
 import { RenderRegistry } from "../rendering/RenderRegistry";
-import { UiRegistry } from "../rendering/UiRegistry";
+import { UIRegistry } from "../rendering/UIRegistry";
 
 export class Engine {
 	private running = false;
@@ -26,7 +26,7 @@ export class Engine {
 
 		RenderRegistry.Initialize(this.DataModel.GetService("Workspace"));
 
-		UiRegistry.Initialize(
+		UIRegistry.Initialize(
 			this.DataModel.GetService("CoreGui"),
 			this.DataModel.GetService("PlayerGui"),
 		);
@@ -73,7 +73,7 @@ export class Engine {
 		this.DataModel.GetService("RunService").Stop();
 
 		RenderRegistry.Reset();
-		UiRegistry.Reset();
+		UIRegistry.Reset();
 
 		if (this.animationFrameId !== null) {
 			cancelAnimationFrame(this.animationFrameId);

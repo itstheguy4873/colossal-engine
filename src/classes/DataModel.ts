@@ -33,7 +33,7 @@ export class DataModel extends Classes.Instance {
 			return existing as T;
 		}
 
-		const service = InstanceFactory.new(serviceName);
+		const service = InstanceFactory.Create(serviceName);
 
 		if (!(service instanceof Classes.BaseService)) {
 			throw new Error(`'${serviceName}' is not a Service.`);
