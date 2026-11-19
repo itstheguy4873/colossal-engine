@@ -1,6 +1,6 @@
 # ColossalEngine
 
-Browser 3D game engine with a Roblox-style API, built on Vite + TypeScript + three.js. Single package; no tests or linter. Prettier is configured in `prettier.config.ts` and uses **tabs, double quotes, LF** — run `npm run format` before committing.
+Browser 3D game engine with a Roblox-style API, built on Vite + TypeScript + three.js, with a small React app shell around it. The engine is a self-contained module under `src/engine/` with two public entry points (`index.ts`, `web.ts`); apps consume it and never reach inside. Single package; no tests or linter. Prettier is configured in `prettier.config.ts` and uses **tabs, double quotes, LF** — run `npm run format` before committing.
 
 ## Commands
 
@@ -21,26 +21,35 @@ No test suite exists — verify changes with `npm run typecheck`, `npm run build
 - `node_modules/` was committed in the initial commit; it is now untracked and `.gitignore` covers it. Never commit dependencies.
 - Everything is LF (`* text=auto eol=lf`). If `git status` shows the whole tree modified, the working copy has CRLF — run `npm run format` instead of committing line-ending churn.
 - Indentation is **tabs**, not spaces. Hand-written spaces fail `format:check` and get rewritten by `format`.
-- `InstanceFactory.new("X")` and `IsA` resolve classes by name (`Classes[X]`, `constructor.name`). A class must be exported from `classes/index.ts` or `new`/`GetService` throws `Unknown class`. Renaming classes or minifying with name mangling breaks both.
+- `InstanceFactory.new("X")` and `IsA` resolve classes by name (`Classes[X]`, `constructor.name`). A class must be exported from `src/engine/classes/index.ts` or `new`/`GetService` throws `Unknown class`. Renaming classes or minifying with name mangling breaks both.
 - **`InstanceFactory` infers the return type from the class-name literal**, the same mapped-type trick as `GetService`: `InstanceFactory.new("Part")` is a `Part` with no cast. `InstanceMap` in `Factory.ts` is built from the barrel and excludes abstract classes (Instance, PVInstance, BasePart, BaseService, GuiBase, LayerCollector, GuiButton), so unknown names and abstract bases are type errors. For a name known only at runtime, use `InstanceFactory.Create(name)`, which returns `Instance` and requires the caller to narrow — services go through it.
-- `DataModel.GetService` types itself from the `classes/index.ts` barrel: `GetService("Workspace")` returns `Workspace` with no type argument, and the name is checked against the concrete `BaseService` subclasses exported there. The barrel is therefore load-bearing for types as well as for `InstanceFactory` name lookups. A `GetService<T>("NonBarrelName")` overload still accepts explicit types and dynamic strings.
+- `DataModel.GetService` types itself from the `src/engine/classes/index.ts` barrel: `GetService("Workspace")` returns `Workspace` with no type argument, and the name is checked against the concrete `BaseService` subclasses exported there. The barrel is therefore load-bearing for types as well as for `InstanceFactory` name lookups. A `GetService<T>("NonBarrelName")` overload still accepts explicit types and dynamic strings.
 
 ## Layout
 
-- `index.html` → `src/main.ts`; it requires `<main id="app">`. `main.ts` is a demo harness (logs, 1 s top-level wait, a part moved by WASD, camera following it, and a `ScreenGui` HUD with a `TextBox`, `TextButton`, and a scrolled `ScrollingFrame`), not engine code.
-- `src/classes/` — Roblox-like scene graph and services: `Instance` → `PVInstance` → `BasePart` → `Part`, plus `Camera` (extends `PVInstance`), `DataModel`, `Workspace`, `RunService`, `UserInputService`.
-- `src/classes/` GUI tree: `GuiBase` → `GuiObject` → `Frame` / `TextLabel` / `TextBox` / `ScrollingFrame`, `GuiObject` → `GuiButton` → `TextButton`, and `GuiBase` → `LayerCollector` → `ScreenGui`. Services `CoreGui` and `PlayerGui` hold the ScreenGui roots.
-- `src/backend/interfaces/` — `IBackend` (`Renderer`, `Input`, `Audio`, `Gui`), `IRenderer`, `IInput`, `IAudio`, `IGui`.
-- `src/backend/implementations/three/` — `WebBackend`, `WebRenderer`, `WebInput`, `WebAudio`, `WebUi` (the name is historic; it is a DOM overlay, not three.js).
-- `src/core/` — `Engine` lifecycle/rAF loop and `InstanceFactory`.
-- `src/datatypes/` — `Vector3`, `Vector2`, `Color3`, `CFrame`, `UDim`, `UDim2`, `Signal`.
-- `src/enums/` — `PartType`.
-- `src/rendering/RenderRegistry.ts` — static, three-free registry of renderable parts; also exposes the Workspace handle for the renderer's camera lookup.
-- `src/rendering/UIRegistry.ts` — static, three-free registry of `ScreenGui` roots under `CoreGui`/`PlayerGui`.
+- `index.html` → `src/main.tsx`, which mounts `<App />` into `<main id="app">` with `createRoot`. JSX is compiled by Vite's esbuild using `"jsx": "react-jsx"` from `tsconfig.json`; there is no `vite.config.ts` and no React plugin, so there is no Fast Refresh — state resets on save are expected.
+- `src/App.tsx` — the app shell: a "Open viewport" button that mounts a full-screen `<div>` holding the engine, and a "Close viewport" button that unmounts it. The scene setup (`SetupScene`) lives here and is the placeholder an editor will replace.
+- `src/app.css` — app-shell styles only. Game UI is still drawn by `WebUi` inside the engine container; keep editor chrome outside it.
+- `src/engine/` — the engine proper. Everything that ships as the engine lives here, and nothing inside it imports anything from outside `src/engine/`.
+- `src/engine/index.ts` — **public platform-neutral barrel**: `Engine`, `InstanceFactory`, every class re-exported from `classes/index.ts`, the datatypes (`Vector3`, `CFrame`, `Color3`, `UDim`, `UDim2`, `Signal`, …), `PartType`, and the backend interfaces as types. A new engine symbol an app should see must be added here in the same change.
+- `src/engine/web.ts` — **public web barrel**: `WebBackend` today, editor viewport implementations later. The only public entry allowed to reach three.js.
+- `src/engine/classes/` — Roblox-like scene graph and services: `Instance` → `PVInstance` → `BasePart` → `Part`, plus `Camera` (extends `PVInstance`), `DataModel`, `Workspace`, `RunService`, `UserInputService`.
+- `src/engine/classes/index.ts` — class barrel; load-bearing for `InstanceFactory` and `GetService` typing (see below), not just for imports.
+- `src/engine/classes/` GUI tree: `GuiBase` → `GuiObject` → `Frame` / `TextLabel` / `TextBox` / `ScrollingFrame`, `GuiObject` → `GuiButton` → `TextButton`, and `GuiBase` → `LayerCollector` → `ScreenGui`. Services `CoreGui` and `PlayerGui` hold the ScreenGui roots.
+- `src/engine/backend/interfaces/` — `IBackend` (`Renderer`, `Input`, `Audio`, `Gui`), `IRenderer`, `IInput`, `IAudio`, `IGui`.
+- `src/engine/backend/implementations/three/` — `WebBackend`, `WebRenderer`, `WebInput`, `WebAudio`, `WebUi` (the name is historic; it is a DOM overlay, not three.js).
+- `src/engine/core/` — `Engine` lifecycle/rAF loop and `InstanceFactory`.
+- `src/engine/datatypes/` — `Vector3`, `Vector2`, `Color3`, `CFrame`, `UDim`, `UDim2`, `Signal`.
+- `src/engine/enums/` — `PartType`.
+- `src/engine/rendering/RenderRegistry.ts` — static, three-free registry of renderable parts; also exposes the Workspace handle for the renderer's camera lookup.
+- `src/engine/rendering/UIRegistry.ts` — static, three-free registry of `ScreenGui` roots under `CoreGui`/`PlayerGui`. Both registries are internal: the barrels intentionally do not re-export them.
 
 ## Conventions and invariants
 
-- **three.js is backend-only.** It is imported only under `src/backend/implementations/three/` (`WebRenderer.ts`, `PartGeometry.ts`). Keep it out of `classes/`, `core/`, `datatypes/`, `rendering/`, and `WebUi.ts`.
+- **The engine is a module with a one-way boundary.** Apps (`src/main.tsx`, `src/App.tsx`, and `src/editor/` when it exists) import from `src/engine/index.ts` and `src/engine/web.ts` only — never `engine/classes/...`, `engine/core/...`, `engine/backend/implementations/...`, or the registries. Inside `src/engine/`, imports stay relative and never point at an app entry, and engine internals never import the barrels (that would make a cycle). If an app needs something the barrels do not export, add it to the barrel as part of the change instead of reaching in.
+- **The engine is framework-free.** Nothing under `src/engine/` imports React (or any other UI framework). React lives in the app layer (`src/App.tsx`); the engine only knows `HTMLElement` containers and interfaces.
+- **Mount and unmount the engine as a unit.** `new Engine(name, new WebBackend(container))` then `Start()`; teardown is `Stop()`, which resets both registries and disposes the backend (canvas, overlay, listeners, geometries). `Start()` is async — stop it after the promise settles, not before, or the frame loop is left running. One engine per page: the registries are static.
+- **three.js is backend-only.** It is imported only under `src/engine/backend/implementations/three/` (`WebRenderer.ts`, `PartGeometry.ts`). Keep it out of `classes/`, `core/`, `datatypes/`, `rendering/`, and `WebUi.ts`, and out of `src/engine/index.ts`, which must stay platform-neutral; only `src/engine/web.ts` may re-export a three-based class.
 - **PascalCase public API** (`Name`, `Parent`, `Size`, `CFrame`, `GetChildren`, `IsA`, `Heartbeat`). Match Roblox naming and semantics; don't normalize to camelCase.
 - **Rendering is ancestry-driven.** A `BasePart` renders only while under `Workspace`, nested containers included. `Engine.Start()` calls `RenderRegistry.Initialize(Workspace)`, which subscribes to `Workspace.DescendantAdded`/`DescendantRemoving`. Never register parts in `InstanceFactory` or constructors — a part has no `Parent` yet at construction, which was a bug.
 - `Instance.Parent` is the only hierarchy mutation point. It fires `DescendantRemoving` pre-move on old ancestors, then mutates, then fires `DescendantAdded` on new ancestors for the whole moved subtree, then `ChildRemoved`/`ChildAdded`, then `AncestryChanged`. Preserve that order; listeners rely on `IsDescendantOf` being accurate.
@@ -49,9 +58,9 @@ No test suite exists — verify changes with `npm run typecheck`, `npm run build
 - **UI is registered by ancestry too.** `Engine.Start()` calls `UIRegistry.Initialize(CoreGui, PlayerGui)`; a `ScreenGui` renders only while it is a descendant of one of those containers, whether it was parented before or after `Start()`. `UIRegistry.GetContainer` walks parents to pick the DOM layer: PlayerGui is z-index 10, CoreGui is 20.
 - **Camera is owned by `Workspace`.** `Workspace.CurrentCamera` is a non-null field initializer that parents a `Camera` in its constructor, so it is never null — don't add null checks. `WebRenderer.syncCamera()` copies `CFrame` and `FieldOfView` into the three camera every frame, so camera behavior belongs in `classes/`, not the backend. `Camera` is not a `BasePart`, so `RenderRegistry` ignores it, and `IsA("PVInstance")` is true (unlike Roblox).
 - **Geometry is unit-sized**, cached per `PartType` in `PartGeometry.ts`; size is applied with `mesh.scale = part.Size`. A new `PartType` needs a `CreateGeometry` case.
-- `DataModel.GetService("X")` resolves `X` by name from the `classes/index.ts` barrel, constructs it with the service name, and caches it. A new service must be exported there or `GetService` throws `Unknown class`.
+- `DataModel.GetService("X")` resolves `X` by name from the `src/engine/classes/index.ts` barrel, constructs it with the service name, and caches it. A new service must be exported there or `GetService` throws `Unknown class`.
 - Services are constructed with only `Name` (see `InstanceFactory`). Backend dependencies are injected afterwards with `Attach(...)` from `Engine.Start()`, not constructor arguments.
-- **Input state lives only in `WebInput`** (`backend/implementations/three/WebInput.ts`). `UserInputService` is a facade attached by `Engine.Start()`; never add DOM listeners inside `classes/`. Keys are `KeyboardEvent.code` (`"KeyW"`, `"Space"`, `"ShiftLeft"`) — `"w"` never matches. Input is polled from `Heartbeat`/`Stepped`, not pushed. `WebInput` ignores `keydown` while an `INPUT`/`TEXTAREA`/`SELECT`/contenteditable is the target (key-up is still recorded so a held key cannot stick), and ignores `mousedown` inside `[data-colossal-ui]`, so typing and clicking GUI never moves parts.
+- **Input state lives only in `WebInput`** (`src/engine/backend/implementations/three/WebInput.ts`). `UserInputService` is a facade attached by `Engine.Start()`; never add DOM listeners inside `classes/`. Keys are `KeyboardEvent.code` (`"KeyW"`, `"Space"`, `"ShiftLeft"`) — `"w"` never matches. Input is polled from `Heartbeat`/`Stepped`, not pushed. `WebInput` ignores `keydown` while an `INPUT`/`TEXTAREA`/`SELECT`/contenteditable is the target (key-up is still recorded so a held key cannot stick), and ignores `mousedown` inside `[data-colossal-ui]`, so typing and clicking GUI never moves parts.
 - `CFrame.Rotation` is Euler radians and is copied directly into `THREE.Mesh.rotation` and `THREE.PerspectiveCamera.rotation`. `CFrame.Multiply` is component-wise, not matrix composition — don't assume Roblox `CFrame` math.
 
 ## GUI

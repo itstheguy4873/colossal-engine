@@ -1,0 +1,67 @@
+#app {
+	display: grid;
+	place-items: center;
+	background: radial-gradient(circle at 50% 30%, #232329, #101014 70%);
+	color: #e9e9ef;
+	font-family:
+		system-ui,
+		-apple-system,
+		"Segoe UI",
+		sans-serif;
+}
+
+.launcher {
+	display: grid;
+	gap: 20px;
+	justify-items: center;
+}
+
+.launcher h1 {
+	margin: 0;
+	font-size: 2rem;
+	font-weight: 600;
+	letter-spacing: -0.02em;
+}
+
+.launcher button {
+	padding: 10px 18px;
+	border: 1px solid #3a3a44;
+	border-radius: 8px;
+	background: #26262e;
+	color: inherit;
+	font: inherit;
+	font-weight: 500;
+	cursor: pointer;
+}
+
+.launcher button:hover {
+	background: #30303a;
+}
+
+.viewport {
+	position: fixed;
+	inset: 0;
+	overflow: hidden;
+}
+
+.viewport canvas {
+	display: block;
+}
+
+.viewport-close {
+	position: fixed;
+	top: 16px;
+	left: 16px;
+	z-index: 30;
+	padding: 8px 14px;
+	border: 1px solid #3a3a44;
+	border-radius: 8px;
+	background: rgba(38, 38, 46, 0.9);
+	color: #e9e9ef;
+	font: inherit;
+	cursor: pointer;
+}
+
+.viewport-close:hover {
+	background: #30303a;
+}
