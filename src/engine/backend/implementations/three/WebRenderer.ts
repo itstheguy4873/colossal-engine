@@ -14,22 +14,23 @@ export class WebRenderer implements IRenderer {
 
 	private isDisposed: boolean = false;
 	private meshes = new Map<BasePart, THREE.Mesh>();
+	private resizeObserver: ResizeObserver;
 
 	constructor(container: HTMLElement) {
 		this.container = container;
 		this.scene = new THREE.Scene();
 
-		this.camera = new THREE.PerspectiveCamera(
-			75,
-			container.clientWidth / container.clientHeight,
-			0.1,
-			1000,
-		);
+		// The container can still be 0x0 here (a dock panel that has not been
+		// laid out yet); 1 keeps the aspect finite until the ResizeObserver runs.
+		this.camera = new THREE.PerspectiveCamera(75, 1, 0.1, 1000);
 		this.camera.position.z = 5;
 
 		this.renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
 		this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-		this.renderer.setSize(container.clientWidth, container.clientHeight);
+
+		this.resizeToContainer();
+
+		this.resizeObserver = new ResizeObserver(this.onContainerResize);
 	}
 
 	public async Initialize(): Promise<void> {
@@ -39,7 +40,7 @@ export class WebRenderer implements IRenderer {
 
 		this.container.appendChild(this.renderer.domElement);
 
-		window.addEventListener("resize", this.onWindowResize);
+		this.resizeObserver.observe(this.container);
 
 		await this.loadSceneAssets();
 	}
@@ -68,14 +69,21 @@ export class WebRenderer implements IRenderer {
 			const geometry = GetPartGeometry(part instanceof Part ? part.PartType : PartType.Block);
 
 			let mesh = this.meshes.get(part);
-			let material = new THREE.MeshStandardMaterial({ color: part.Color.ToHex() });
 
 			if (!mesh) {
-				mesh = new THREE.Mesh(geometry, material);
+				// One material per mesh: allocating it in the loop leaked a material
+				// every frame and left `Part.Color` changes without effect.
+				mesh = new THREE.Mesh(
+					geometry,
+					new THREE.MeshStandardMaterial({ color: part.Color.ToHex() }),
+				);
 				this.scene.add(mesh);
 				this.meshes.set(part, mesh);
-			} else if (mesh.geometry !== geometry) {
-				mesh.geometry = geometry;
+			} else {
+				if (mesh.geometry !== geometry) mesh.geometry = geometry;
+
+				const material = mesh.material as THREE.MeshStandardMaterial;
+				material.color.set(part.Color.ToHex());
 			}
 
 			mesh.position.set(
@@ -103,11 +111,14 @@ export class WebRenderer implements IRenderer {
 		if (this.isDisposed) return;
 		this.isDisposed = true;
 
-		window.removeEventListener("resize", this.onWindowResize);
+		this.resizeObserver.disconnect();
 		if (this.renderer.domElement.parentNode === this.container) {
 			this.container.removeChild(this.renderer.domElement);
 		}
 
+		for (const mesh of this.meshes.values()) {
+			(mesh.material as THREE.Material).dispose();
+		}
 		this.meshes.clear();
 		this.scene.clear();
 
@@ -115,16 +126,23 @@ export class WebRenderer implements IRenderer {
 		this.renderer.dispose();
 	}
 
-	private onWindowResize = (): void => {
-		if (!this.container || this.isDisposed) return;
+	private onContainerResize = (): void => {
+		if (this.isDisposed) return;
 
+		this.resizeToContainer();
+	};
+
+	private resizeToContainer(): void {
 		const width = this.container.clientWidth;
 		const height = this.container.clientHeight;
+
+		// A hidden dock tab reports 0x0; resizing to it would produce a NaN aspect.
+		if (width === 0 || height === 0) return;
 
 		this.camera.aspect = width / height;
 		this.camera.updateProjectionMatrix();
 		this.renderer.setSize(width, height);
-	};
+	}
 
 	private syncCamera(): void {
 		const ActiveCamera = RenderRegistry.GetWorkspace()?.CurrentCamera;

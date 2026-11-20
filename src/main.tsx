@@ -1,9 +1,9 @@
-import { createRoot } from "react-dom/client";
-import { App } from "./App";
-import "./app.css";
+import "./editor/core/Editor";
 
-const Container = document.querySelector<HTMLElement>("#app");
+const Container = document.getElementById("app");
 
-if (!Container) throw new Error("Missing #app container");
+if (!Container) throw new Error("Missing #app container.");
 
-createRoot(Container).render(<App />);
+// The import above registers `editor-app`; creating it afterwards means the
+// element upgrades as soon as it is inserted.
+Container.append(document.createElement("editor-app"));
