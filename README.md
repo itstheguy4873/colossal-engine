@@ -74,17 +74,17 @@ The following roadmap outlines the current development progress and planned dire
 - ❌ - The feature is planned but not currently in development.
 - ❓ - The feature is being reconsidered, and its implementation is not yet decided.
 
-| Status | Feature | Notes (If any) |
-|:---:|---|---|
-| ✔️ | Implement basic `Instance` functionality | Will be expanded upon the future |
-| ✔️ | Implement `UserInputService` and `RunService` | |
-| ✔️ | Get game UI working | Support for embeddable HTML may be introduced in the future |
-| 🔨 | Implement scripting in TypeScript and Lua |  |
-| 🔨 | Implement an editor for games | The actual editor where developers can make games |
-| ❌ | Make games serializable | The ability to save and load games |
-| ❓ | Implement a character system | May be added for compatibility reasons |
-| ❌ | Implement a scene system | Similar to Roblox's Places system |
-| ❓ | Distribute native binaries via [Tauri](https://v2.tauri.app/) | Alternate distribution options are being considered |
+| Status | Feature                                                       | Notes (If any)                                              |
+| :----: | ------------------------------------------------------------- | ----------------------------------------------------------- |
+|   ✔️   | Implement basic `Instance` functionality                      | Will be expanded upon the future                            |
+|   ✔️   | Implement `UserInputService` and `RunService`                 |                                                             |
+|   ✔️   | Get game UI working                                           | Support for embeddable HTML may be introduced in the future |
+|   🔨   | Implement scripting in TypeScript and Lua                     |                                                             |
+|   🔨   | Implement an editor for games                                 | The actual editor where developers can make games           |
+|   ❌   | Make games serializable                                       | The ability to save and load games                          |
+|   ❓   | Implement a character system                                  | May be added for compatibility reasons                      |
+|   ❌   | Implement a scene system                                      | Similar to Roblox's Places system                           |
+|   ❓   | Distribute native binaries via [Tauri](https://v2.tauri.app/) | Alternate distribution options are being considered         |
 
 This roadmap is subject to change as development progresses. Features may be added, removed, or reconsidered as the engine's architecture and requirements evolve.
 
