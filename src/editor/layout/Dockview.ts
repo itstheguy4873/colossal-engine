@@ -21,13 +21,10 @@ export class EditorDockview extends EditorElement {
 	private api: DockviewApi | undefined;
 	private pending: AddPanelOptions[] = [];
 	private pendingActive: string | undefined;
-	
+
 	protected override render() {
 		return html`
-			<div
-				class="dockview-host"
-				@contextmenu=${(e: MouseEvent) => e.preventDefault()}
-			></div>
+			<div class="dockview-host" @contextmenu=${(e: MouseEvent) => e.preventDefault()}></div>
 		`;
 	}
 

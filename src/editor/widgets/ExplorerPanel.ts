@@ -4,8 +4,8 @@ import { customElement, state } from "lit/decorators.js";
 import type { Instance } from "../../engine";
 import { EditorElement } from "../core/EditorElement";
 
-@customElement("hierarchy-widget")
-export class HierarchyWidget extends EditorElement {
+@customElement("explorer-widget")
+export class ExplorerWidget extends EditorElement {
 	@state()
 	private Expanded = new Set<Instance>();
 
@@ -13,9 +13,9 @@ export class HierarchyWidget extends EditorElement {
 	private Selected?: Instance;
 
 	protected render() {
-		const Workspace = this.dataModel?.GetService("Workspace");
+		const DataModel = this.dataModel;
 
-		if (!Workspace) {
+		if (!DataModel) {
 			return html`
 				<div class="widget">
 					<div class="widget-row">No DataModel</div>
@@ -24,9 +24,7 @@ export class HierarchyWidget extends EditorElement {
 		}
 
 		return html`
-			<div class="widget treeview" role="tree">
-				${this.RenderInstance(Workspace, 0)}
-			</div>
+			<div class="widget treeview" role="tree">${this.RenderInstance(DataModel, 0)}</div>
 		`;
 	}
 
@@ -42,10 +40,7 @@ export class HierarchyWidget extends EditorElement {
 		this.Expanded = Expanded;
 	}
 
-	private RenderInstance(
-		Instance: Instance,
-		Depth: number,
-	): TemplateResult {
+	private RenderInstance(Instance: Instance, Depth: number): TemplateResult {
 		const Children = Instance.GetChildren();
 		const HasChildren = Children.length > 0;
 		const IsExpanded = this.Expanded.has(Instance);
@@ -78,15 +73,17 @@ export class HierarchyWidget extends EditorElement {
 					<span class="tree-name">${Instance.Name}</span>
 				</div>
 
-				${HasChildren && IsExpanded
-					? html`
-							<div class="tree-children" role="group">
-								${Children.map((Child) =>
-									this.RenderInstance(Child, Depth + 1),
-								)}
-							</div>
-						`
-					: null}
+				${
+					HasChildren && IsExpanded
+						? html`
+								<div class="tree-children" role="group">
+									${Children.map((Child) =>
+										this.RenderInstance(Child, Depth + 1),
+									)}
+								</div>
+							`
+						: null
+				}
 			</div>
 		`;
 	}

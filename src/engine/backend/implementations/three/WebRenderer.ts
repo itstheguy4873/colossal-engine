@@ -23,6 +23,9 @@ export class WebRenderer implements IRenderer {
 		// The container can still be 0x0 here (a dock panel that has not been
 		// laid out yet); 1 keeps the aspect finite until the ResizeObserver runs.
 		this.camera = new THREE.PerspectiveCamera(75, 1, 0.1, 1000);
+		// Camera rotations are yaw-first: `CFrame.Rotation` is (pitch, yaw, roll)
+		// and 'YXZ' keeps the horizon level while the editor looks around.
+		this.camera.rotation.order = "YXZ";
 		this.camera.position.z = 5;
 
 		this.renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });

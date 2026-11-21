@@ -18,6 +18,8 @@ export * from "./classes";
 
 export { CFrame } from "./datatypes/CFrame";
 export { Color3 } from "./datatypes/Color3";
+export { InputObject } from "./datatypes/InputObject";
+export type { InputObjectProperties, UserInputState, UserInputType } from "./datatypes/InputObject";
 export { UDim } from "./datatypes/UDim";
 export { UDim2 } from "./datatypes/UDim2";
 export { Vector2 } from "./datatypes/Vector2";
@@ -30,5 +32,5 @@ export { PartType } from "./enums/PartType";
 export type { IAudio } from "./backend/interfaces/IAudio";
 export type { IBackend } from "./backend/interfaces/IBackend";
 export type { IGui } from "./backend/interfaces/IGui";
-export type { IInput } from "./backend/interfaces/IInput";
+export type { IInput, IInputEvent } from "./backend/interfaces/IInput";
 export type { IRenderer } from "./backend/interfaces/IRenderer";

@@ -16,21 +16,21 @@ const rows = [
  * selected instance; edits should go through a command stack rather than
  * assigning to the instance.
  */
-@customElement("inspector-widget")
-export class InspectorWidget extends EditorElement {
+@customElement("properties-widget")
+export class PropertiesWidget extends EditorElement {
 	protected render() {
 		return html`
-			<div class="inspector">
-				<div class="inspector-header">No selection</div>
-				<div class="inspector-source">
+			<div class="properties">
+				<div class="properties-header">No selection</div>
+				<div class="properties-source">
 					${this.dataModel ? `DataModel: ${this.dataModel.Name}` : "No DataModel"}
 				</div>
 
 				${rows.map(
 					(row) => html`
-						<div class="inspector-row">
-							<span class="inspector-label">${row.label}</span>
-							<span class="inspector-value">${row.value}</span>
+						<div class="properties-row">
+							<span class="properties-label">${row.label}</span>
+							<span class="properties-value">${row.value}</span>
 						</div>
 					`,
 				)}

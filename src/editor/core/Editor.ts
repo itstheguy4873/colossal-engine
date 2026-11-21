@@ -40,18 +40,18 @@ export class EditorApp extends EditorElement {
 		});
 
 		dock.addWidget({
-			id: "hierarchy",
-			title: "Hierarchy",
-			component: "hierarchy-widget",
+			id: "explorer",
+			title: "Explorer",
+			component: "explorer-widget",
 			position: { direction: "left" },
 			initialWidth: 260,
 			inactive: true,
 		});
 
 		dock.addWidget({
-			id: "inspector",
-			title: "Inspector",
-			component: "inspector-widget",
+			id: "properties",
+			title: "Properties",
+			component: "properties-widget",
 			position: { direction: "right" },
 			initialWidth: 300,
 			inactive: true,

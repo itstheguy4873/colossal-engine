@@ -66,40 +66,40 @@ editor-dockview {
 	padding-left: 26px;
 }
 
-.inspector {
+.properties {
 	display: flex;
 	flex-direction: column;
 }
 
-.inspector-header {
+.properties-header {
 	padding: 10px 12px;
 	border-bottom: 1px solid #2a2a32;
 	color: #8b8b98;
 }
 
-.inspector-source {
+.properties-source {
 	padding: 6px 12px;
 	border-bottom: 1px solid #202028;
 	color: #6c6c7a;
 	font-size: 0.9em;
 }
 
-.inspector-row {
+.properties-row {
 	display: grid;
 	grid-template-columns: 42% 58%;
 	border-bottom: 1px solid #202028;
 }
 
-.inspector-label,
-.inspector-value {
+.properties-label,
+.properties-value {
 	padding: 6px 12px;
 }
 
-.inspector-label {
+.properties-label {
 	color: #a5a5b4;
 }
 
-.inspector-value {
+.properties-value {
 	color: #e7e7ee;
 	font-variant-numeric: tabular-nums;
 }

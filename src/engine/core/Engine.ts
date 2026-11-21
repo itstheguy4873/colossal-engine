@@ -13,9 +13,9 @@ export class Engine {
 
 	private readonly Backend: IBackend;
 
-	constructor(Name: string, Backend: IBackend) {
+	constructor(Name: string, Backend: IBackend, dataModel?: DataModel) {
 		this.Name = Name;
-		this.DataModel = new DataModel(this.Name);
+		this.DataModel = dataModel ?? new DataModel(this.Name);
 		this.Backend = Backend;
 	}
 
