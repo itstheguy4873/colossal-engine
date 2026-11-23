@@ -1,74 +1,76 @@
-import { LitElement, html, css, unsafeCSS } from 'lit';
-import { customElement, query, state } from 'lit/decorators.js';
-import {
-    createDockview,
-    DockviewApi,
-    themeAbyss,
-} from 'dockview-core';
+import { LitElement, html, unsafeCSS } from "lit";
+import { customElement, query } from "lit/decorators.js";
+import { createDockview, themeDark } from "dockview-core";
+import type { DockviewApi } from "dockview-core";
 
-import './windows';
+import "./windows";
 
-import { Engine } from '../engine';
-import { LitRenderer } from './core/LitRenderer';
-import { LayoutManager } from './layouts/LayoutManager';
+import { Engine } from "../engine";
+import { LitRenderer } from "./core/LitRenderer";
+import { LayoutManager } from "./layouts/LayoutManager";
 
-import dockviewStyles from 'dockview/dist/styles/dockview.css?inline';
+import { EditorContextImpl } from "./core/EditorContext";
 
-import { WebBackend } from '../engine/web';
+import dockviewStyles from "dockview/dist/styles/dockview.css?inline";
 
-@customElement('main-app')
+import { WebBackend } from "../engine/web";
+import { appStyles } from "./style";
+
+@customElement("main-app")
 export class App extends LitElement {
-    static styles = [
-        unsafeCSS(dockviewStyles),
-        css`
-            :host {
-                display: block;
-                width: 100vw;
-                height: 100vh;
-                overflow: hidden;
-            }
+	static styles = [unsafeCSS(dockviewStyles), appStyles];
 
-            #dock {
-                width: 100%;
-                height: 100%;
-            }
-        `,
-    ];
+	@query("#dock") private dockEl!: HTMLElement;
 
-    @query('#dock') private dockEl!: HTMLElement;
+	// Not reactive: `render()` does not read the engine. LitRenderer reads it
+	// when it constructs each window, so a `@state` here only scheduled a
+	// redundant update (and a dev-mode warning) after `firstUpdated`.
+	engine?: Engine;
 
-    @state()
-    engine?: Engine;
+	private api?: DockviewApi;
+	private layoutManager?: LayoutManager;
+	private startTask?: Promise<void>;
 
-    private api?: DockviewApi;
-    private layoutManager?: LayoutManager;
-    
-    async firstUpdated() {
-        const sceneView = document.createElement('div');
+	private context = new EditorContextImpl();
 
-        this.engine = new Engine(
-            "Colossal Engine",
-            new WebBackend(sceneView)
-        );
+	async firstUpdated() {
+		const sceneView = document.createElement("div");
 
-        this.api = createDockview(this.dockEl, {
-            theme: themeAbyss,
-            createComponent: ({ name }) =>
-                new LitRenderer(name, this),
-        });
+		// Create engine
+		this.engine = new Engine("Colossal Engine", new WebBackend(sceneView));
 
-        this.layoutManager = new LayoutManager(this.api);
-        this.layoutManager.loadOrDefault('default');
+		// Share engine with all editor windows
+		this.context.engine = this.engine;
 
-        await this.engine.Start();
-    }
+		// Create Dockview
+		this.api = createDockview(this.dockEl, {
+			theme: themeDark,
+			createComponent: ({ name }) => new LitRenderer(name, this.context),
+		});
 
-    disconnectedCallback() {
-        this.api?.dispose();
-        super.disconnectedCallback();
-    }
+		// Initialize layout
+		this.layoutManager = new LayoutManager(this.api);
+		this.layoutManager.loadOrDefault("default");
 
-    render() {
-        return html`<div id="dock"></div>`;
-    }
+		// Start engine
+		this.startTask = this.engine.Start();
+
+		await this.startTask;
+	}
+
+	disconnectedCallback() {
+		const engine = this.engine;
+
+		this.api?.dispose();
+		super.disconnectedCallback();
+
+		// `Engine.Stop()` is a no-op until `Start()` has finished, so wait for it
+		// to settle. Otherwise a teardown during startup would be ignored and the
+		// frame loop would keep rendering into a removed element.
+		void (this.startTask ?? Promise.resolve()).then(() => engine?.Stop());
+	}
+
+	render() {
+		return html`<div id="dock"></div>`;
+	}
 }

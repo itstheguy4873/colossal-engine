@@ -129,6 +129,10 @@ export class WebRenderer implements IRenderer {
 		this.renderer.dispose();
 	}
 
+	public Viewport(): HTMLElement {
+		return this.container;
+	}
+
 	private onContainerResize = (): void => {
 		if (this.isDisposed) return;
 

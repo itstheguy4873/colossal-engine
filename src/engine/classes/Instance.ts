@@ -5,6 +5,8 @@ export abstract class Instance {
 
 	protected _children: Instance[];
 	public static readonly ClassName: string = "Instance";
+	/** Marks abstract bases so runtime insert-menu enumeration can skip them. */
+	public static readonly Abstract = true;
 	private _parent: Instance | null = null;
 
 	public readonly ChildAdded = new Signal<[Child: Instance]>();

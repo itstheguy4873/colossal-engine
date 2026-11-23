@@ -9,6 +9,8 @@ import { Signal } from "../datatypes/Signal";
  * MouseButton1* signals are mouse-specific.
  */
 export abstract class GuiButton extends GuiObject {
+	public static readonly Abstract = true;
+
 	public get ClassName(): string {
 		return "GuiButton";
 	}

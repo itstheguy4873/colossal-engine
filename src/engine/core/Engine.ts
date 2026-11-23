@@ -19,6 +19,10 @@ export class Engine {
 		this.Backend = Backend;
 	}
 
+	public Viewport(): HTMLElement {
+		return this.Backend.Renderer.Viewport();
+	}
+
 	public async Start(): Promise<void> {
 		if (this.running) return;
 

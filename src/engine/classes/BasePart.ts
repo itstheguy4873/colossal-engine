@@ -3,6 +3,8 @@ import { Vector3 } from "../datatypes/Vector3";
 import { Color3 } from "../datatypes/Color3";
 
 export abstract class BasePart extends PVInstance {
+	public static readonly Abstract = true;
+
 	public get ClassName(): string {
 		return "BasePart";
 	}

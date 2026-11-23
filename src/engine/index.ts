@@ -12,7 +12,7 @@
  */
 
 export { Engine } from "./core/Engine";
-export { InstanceFactory } from "./core/Factory";
+export { GetCreatableInstances, InstanceFactory, IsCreatableInstanceA } from "./core/Factory";
 
 export * from "./classes";
 
