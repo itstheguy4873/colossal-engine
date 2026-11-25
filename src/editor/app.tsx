@@ -3,6 +3,7 @@ import { DockLayout, type LayoutData } from "rc-dock";
 
 import { Engine } from "../engine";
 import { WebBackend } from "../engine/web";
+import { EditorLogic } from "./editor/EditorLogic";
 import { EditorContextImpl } from "./core/EditorContext";
 import { EditorProvider, type EditorServices } from "./core/EditorProvider";
 import { LayoutManager } from "./layouts/LayoutManager";
@@ -26,18 +27,23 @@ export function App() {
 	});
 
 	const [layoutManager] = useState(() => new LayoutManager(services.engine.Name));
+	const [editorLogic] = useState(() => new EditorLogic(services.engine));
 	const [initialLayout] = useState<LayoutData>(() => layoutManager.LoadLayout());
 
 	useEffect(() => {
 		const startTask = services.engine.Start();
 
+		editorLogic.Start();
+
 		return () => {
+			editorLogic.Stop();
+
 			// `Engine.Stop()` is a no-op until `Start()` has finished, so wait for
 			// it to settle. Otherwise a teardown during startup is ignored and the
 			// frame loop keeps rendering into a removed element.
 			void startTask.then(() => services.engine.Stop());
 		};
-	}, [services]);
+	}, [editorLogic, services]);
 
 	return (
 		<EditorProvider value={services}>
