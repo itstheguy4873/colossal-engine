@@ -7,6 +7,10 @@ export interface EditorContext {
 
 	setSelectedInstance(instance: any): void;
 
+	subscribe(listener: () => void): () => void;
+
+	getSelectedInstance(): any;
+
 	addEventListener: EventTarget["addEventListener"];
 	removeEventListener: EventTarget["removeEventListener"];
 }
@@ -16,7 +20,7 @@ export class EditorContextImpl extends EventTarget implements EditorContext {
 
 	selectedInstance: any = null;
 
-	setSelectedInstance(instance: any) {
+	public setSelectedInstance(instance: any) {
 		this.selectedInstance = instance;
 
 		this.dispatchEvent(
@@ -25,4 +29,14 @@ export class EditorContextImpl extends EventTarget implements EditorContext {
 			}),
 		);
 	}
+
+	public subscribe = (listener: () => void): (() => void) => {
+		const handler = () => listener();
+
+		this.addEventListener("selection-changed", handler);
+
+		return () => this.removeEventListener("selection-changed", handler);
+	};
+
+	public getSelectedInstance = (): any => this.selectedInstance;
 }

@@ -1,10 +1,11 @@
+import type { SyntheticEvent } from "react";
+
 /**
- * Points a broken tree/menu icon at the generic Instance icon. Lit attaches
- * `error` with `addEventListener`, so `image.onerror = null` would not stop a
- * loop when the fallback is missing too; the dataset flag does.
+ * Points a broken tree/menu icon at the generic Instance icon. The dataset
+ * flag stops a loop when the fallback is missing too.
  */
-export const ApplyIconFallback = (event: Event): void => {
-	const image = event.target;
+export const ApplyIconFallback = (event: SyntheticEvent<HTMLImageElement>): void => {
+	const image = event.currentTarget;
 
 	if (!(image instanceof HTMLImageElement)) return;
 	if (image.dataset.fallback) return;

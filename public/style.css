@@ -1,9 +1,8 @@
 /*
  * Global reset and design tokens.
  *
- * Components live in shadow DOM, so they cannot be styled from here. They
- * inherit the custom properties below (custom properties cross shadow
- * boundaries) and use them in their own `static styles`.
+ * Editor views are regular React DOM, styled from `src/editor/style/editor.css`
+ * on top of these custom properties.
  */
 :root {
 	color-scheme: dark;
@@ -58,7 +57,7 @@ body {
 	-webkit-font-smoothing: antialiased;
 }
 
-main-app {
+#root {
 	display: block;
 	width: 100%;
 	height: 100%;

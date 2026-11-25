@@ -1,14 +1,26 @@
-import { LitElement } from "lit";
-import { property } from "lit/decorators.js";
-import type { Engine } from "../../engine";
-import type { EditorContext } from "../core/EditorContext";
+import type { ReactElement } from "react";
+import type { TabData } from "rc-dock";
 
-export abstract class BaseWindow extends LitElement {
-	@property({ attribute: false })
-	engine?: Engine;
+/**
+ * A window is a stable identity plus a React view.
+ *
+ * Layout persistence stores only the `id`; `LayoutManager.loadTab` asks the
+ * matching window for fresh `title`/`content` when a saved layout is restored.
+ * Keeping `Render()` separate from the layout data is what allows the dock
+ * library to be replaced without touching any window.
+ */
+export abstract class BaseWindow {
+	public abstract readonly id: string;
+	public abstract readonly title: string;
 
-	@property({ attribute: false })
-	context!: EditorContext;
+	public abstract Render(): ReactElement;
 
-	abstract title: string;
+	public GetTab(): TabData {
+		return {
+			id: this.id,
+			title: this.title,
+			content: this.Render(),
+			closable: false,
+		};
+	}
 }

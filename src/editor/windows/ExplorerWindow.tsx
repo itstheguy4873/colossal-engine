@@ -1,9 +1,16 @@
-import { html, type TemplateResult } from "lit";
-import { customElement, state } from "lit/decorators.js";
+import {
+	useCallback,
+	useEffect,
+	useRef,
+	useState,
+	type CSSProperties,
+	type DragEvent as ReactDragEvent,
+	type KeyboardEvent as ReactKeyboardEvent,
+	type MouseEvent as ReactMouseEvent,
+} from "react";
 import { InstanceFactory, type Instance } from "../../engine";
 import { BaseWindow } from "./BaseWindow";
-import "../components/ContextMenu";
-import type { ContextMenuGroup, ContextMenuSelectDetail } from "../components/ContextMenu";
+import { ContextMenu, type ContextMenuGroup } from "../components/ContextMenu";
 import { ApplyIconFallback } from "../core/IconFallback";
 import {
 	BuildInstanceActionMenu,
@@ -11,7 +18,7 @@ import {
 	IsProtectedInstance,
 } from "../core/InstanceActions";
 import { BuildInstanceInsertMenu } from "../core/InstanceInsertMenu";
-import { explorerStyles } from "../style";
+import { useEditor, useSelectedInstance } from "../core/EditorProvider";
 
 interface ExplorerMenu {
 	instance: Instance;
@@ -25,116 +32,77 @@ interface ExplorerMenu {
 const ACTION_PREFIX = "action:";
 const MOVE_PREFIX = "move:";
 
-@customElement("explorer-window")
 export class ExplorerWindow extends BaseWindow {
-	title = "Explorer";
+	public readonly id = "explorer";
+	public readonly title = "Explorer";
 
-	@state()
-	private expanded = new Set<Instance>();
-
-	@state()
-	private selected: Instance | null = null;
-
-	@state()
-	private revision = 0;
-
-	@state()
-	private dragging: Instance | null = null;
-
-	@state()
-	private dropTarget: Instance | null = null;
-
-	@state()
-	private menu: ExplorerMenu | null = null;
-
-	@state()
-	private renaming: Instance | null = null;
-
-	@state()
-	private draftName = "";
-
-	private connections: any[] = [];
-	private refreshQueued = false;
-	private observed = new Set<Instance>();
-	private expansionInitialized = false;
-
-	connectedCallback() {
-		super.connectedCallback();
-		this.refreshSubscriptions();
+	public Render() {
+		return <ExplorerView />;
 	}
+}
 
-	disconnectedCallback() {
-		this.disconnectAll();
-		this.menu = null;
-		super.disconnectedCallback();
-	}
+function ExplorerView() {
+	const { engine, context } = useEditor();
+	const selected = useSelectedInstance();
+	const root = engine.DataModel;
 
-	updated(changed: Map<PropertyKey, unknown>) {
-		if (changed.has("engine")) {
-			this.menu = null;
-			this.expansionInitialized = false;
+	const [expanded, setExpanded] = useState<Set<Instance>>(() => new Set([root]));
+	const [, setRevision] = useState(0);
+	const [dragging, setDragging] = useState<Instance | null>(null);
+	const [dropTarget, setDropTarget] = useState<Instance | null>(null);
+	const [menu, setMenu] = useState<ExplorerMenu | null>(null);
+	const [renaming, setRenaming] = useState<Instance | null>(null);
+	const [draftName, setDraftName] = useState("");
 
-			// `refreshSubscriptions` may initialize `expanded`, so run it after
-			// this update instead of scheduling another update from inside it.
-			queueMicrotask(() => {
-				if (this.isConnected) this.refreshSubscriptions();
-			});
-		}
+	const treeRef = useRef<HTMLDivElement>(null);
+	const renameRef = useRef<HTMLInputElement>(null);
+	const renamingRef = useRef<Instance | null>(null);
+	const draftNameRef = useRef("");
+	const connectionsRef = useRef<any[]>([]);
+	const observedRef = useRef(new Set<Instance>());
+	const refreshQueuedRef = useRef(false);
+	const refreshRef = useRef<() => void>(() => {});
+	const mountedRef = useRef(true);
 
-		// Focus the inline rename field once it exists. Re-running this while
-		// the field already owns focus would select the text on every keystroke.
-		if (this.renaming) {
-			const input = this.renderRoot.querySelector<HTMLInputElement>(".rename");
-
-			if (input && document.activeElement !== input) {
-				input.focus();
-				input.select();
-			}
-		}
-	}
-
-	private disconnectAll() {
-		for (const connection of this.connections) {
+	const disconnectAll = useCallback(() => {
+		for (const connection of connectionsRef.current) {
 			connection?.Disconnect?.();
 		}
 
-		this.connections = [];
-		this.observed.clear();
-	}
+		connectionsRef.current = [];
+		observedRef.current.clear();
+	}, []);
 
-	private scheduleRefresh = () => {
-		if (this.refreshQueued) return;
+	const scheduleRefresh = useCallback(() => {
+		if (refreshQueuedRef.current) return;
 
-		this.refreshQueued = true;
+		refreshQueuedRef.current = true;
 
 		queueMicrotask(() => {
-			this.refreshQueued = false;
+			refreshQueuedRef.current = false;
 
-			if (!this.isConnected) return;
+			if (!mountedRef.current) return;
 
-			this.refreshSubscriptions();
-			this.revision++;
+			refreshRef.current();
+			setRevision((current) => current + 1);
 		});
-	};
+	}, []);
 
-	private refreshSubscriptions() {
-		this.disconnectAll();
-
-		const root = this.engine?.DataModel;
-		if (!root) return;
+	const refreshSubscriptions = useCallback(() => {
+		disconnectAll();
 
 		const observe = (instance: Instance) => {
-			if (!instance || this.observed.has(instance)) return;
+			if (observedRef.current.has(instance)) return;
 
-			this.observed.add(instance);
+			observedRef.current.add(instance);
 
 			const subscribe = (signal: any) => {
 				if (typeof signal?.Connect !== "function") return;
 
-				const connection = signal.Connect(this.scheduleRefresh);
+				const connection = signal.Connect(scheduleRefresh);
 
 				if (connection) {
-					this.connections.push(connection);
+					connectionsRef.current.push(connection);
 				}
 			};
 
@@ -151,263 +119,248 @@ export class ExplorerWindow extends BaseWindow {
 		};
 
 		observe(root);
+	}, [disconnectAll, root, scheduleRefresh]);
 
-		// Start with the DataModel expanded; a single collapsed root row makes
-		// the panel look empty on first load.
-		if (!this.expansionInitialized) {
-			this.expansionInitialized = true;
-			this.expanded = new Set([root]);
+	useEffect(() => {
+		mountedRef.current = true;
+		refreshRef.current = refreshSubscriptions;
+		refreshSubscriptions();
+
+		return () => {
+			mountedRef.current = false;
+			disconnectAll();
+		};
+	}, [disconnectAll, refreshSubscriptions]);
+
+	useEffect(() => {
+		if (!renaming) return;
+
+		const input = renameRef.current;
+
+		if (input && document.activeElement !== input) {
+			input.focus();
+			input.select();
 		}
-	}
+	}, [renaming]);
 
-	private toggle(instance: Instance) {
-		const next = new Set(this.expanded);
+	const toggle = (instance: Instance) => {
+		setExpanded((current) => {
+			const next = new Set(current);
 
-		if (next.has(instance)) {
-			next.delete(instance);
-		} else {
-			next.add(instance);
-		}
+			if (next.has(instance)) {
+				next.delete(instance);
+			} else {
+				next.add(instance);
+			}
 
-		this.expanded = next;
-	}
+			return next;
+		});
+	};
 
-	private select(instance: Instance) {
-		this.selected = instance;
-		this.context?.setSelectedInstance(instance);
-	}
+	const select = useCallback(
+		(instance: Instance) => {
+			context.setSelectedInstance(instance);
+		},
+		[context],
+	);
 
-	private getChildren(instance: Instance): readonly Instance[] {
+	const getChildren = (instance: Instance): readonly Instance[] => {
 		try {
 			return instance.GetChildren() ?? [];
 		} catch {
 			return [];
 		}
-	}
+	};
 
-	private getIcon(instance: Instance): string {
-		return `/class_icons/${instance.ClassName}.svg`;
-	}
+	const beginRename = (instance: Instance) => {
+		if (IsProtectedInstance(instance, root)) return;
 
-	/* Selection and inline rename ------------------------------------------ */
+		select(instance);
+		renamingRef.current = instance;
+		draftNameRef.current = instance.Name;
+		setRenaming(instance);
+		setDraftName(instance.Name);
+	};
 
-	private onRowClick(event: MouseEvent, instance: Instance) {
-		this.select(instance);
+	const cancelRename = () => {
+		renamingRef.current = null;
+		setRenaming(null);
+	};
 
-		const tree = (event.currentTarget as HTMLElement).closest(".tree");
-
-		if (tree instanceof HTMLElement) {
-			tree.focus();
-		}
-	}
-
-	private beginRename(instance: Instance) {
-		const root = this.engine?.DataModel;
-
-		if (!root || IsProtectedInstance(instance, root)) return;
-
-		this.select(instance);
-		this.renaming = instance;
-		this.draftName = instance.Name;
-	}
-
-	private commitRename = () => {
-		const instance = this.renaming;
+	const commitRename = () => {
+		const instance = renamingRef.current;
 
 		if (!instance) return;
 
-		this.renaming = null;
+		renamingRef.current = null;
+		setRenaming(null);
 
-		const name = this.draftName.trim();
+		const name = draftNameRef.current.trim();
 
 		if (!name || name === instance.Name) return;
 
 		instance.Name = name;
-		this.scheduleRefresh();
+		scheduleRefresh();
 	};
 
-	private onRenameKeyDown = (event: KeyboardEvent) => {
-		// The tree and window both listen for F2/Delete/Escape; keep those from
-		// firing while the user is typing a name.
+	const onRenameKeyDown = (event: ReactKeyboardEvent<HTMLInputElement>) => {
+		// The tree listens for F2/Delete/Escape; keep those from firing while the
+		// user is typing a name.
 		event.stopPropagation();
 
 		if (event.key === "Enter") {
 			event.preventDefault();
-			this.commitRename();
+			commitRename();
 		} else if (event.key === "Escape") {
 			event.preventDefault();
-			this.renaming = null;
+			cancelRename();
 		}
 	};
 
-	/* Tree actions ---------------------------------------------------------- */
-
-	private deleteInstance(instance: Instance) {
-		const root = this.engine?.DataModel;
-
-		if (!root || IsProtectedInstance(instance, root)) return;
+	const deleteInstance = (instance: Instance) => {
+		if (IsProtectedInstance(instance, root)) return;
 
 		const parent = instance.Parent;
 
 		try {
 			instance.Parent = null;
-			this.select(parent ?? root);
-			this.scheduleRefresh();
+			select(parent ?? root);
+			scheduleRefresh();
 		} catch (error) {
 			console.error("Failed to delete instance:", error);
 		}
-	}
+	};
 
-	private moveInstance(instance: Instance, destination: Instance) {
+	const moveInstance = (instance: Instance, destination: Instance) => {
 		try {
 			instance.Parent = destination;
-			this.expanded = new Set([...this.expanded, destination]);
-			this.select(instance);
-			this.scheduleRefresh();
+			setExpanded((current) => new Set([...current, destination]));
+			select(instance);
+			scheduleRefresh();
 		} catch (error) {
 			console.error("Failed to move instance:", error);
 		}
-	}
+	};
 
-	/* Context menus --------------------------------------------------------- */
-
-	private openMenu(event: MouseEvent, instance: Instance) {
+	const openMenu = (event: ReactMouseEvent, instance: Instance) => {
 		event.preventDefault();
 		event.stopPropagation();
 
-		const root = this.engine?.DataModel;
+		select(instance);
 
-		if (!root) return;
-
-		this.select(instance);
-
-		this.menu = {
+		setMenu({
 			instance,
 			x: event.clientX,
 			y: event.clientY,
 			heading: instance.Name,
 			groups: [...BuildInstanceInsertMenu(instance), BuildInstanceActionMenu(instance, root)],
-		};
-	}
+		});
+	};
 
-	private openInsertMenuAt(instance: Instance, x: number, y: number) {
-		this.select(instance);
+	const openInsertMenuAt = (instance: Instance, x: number, y: number) => {
+		select(instance);
 
-		this.menu = {
+		setMenu({
 			instance,
 			x,
 			y,
 			heading: `Insert into ${instance.Name}`,
 			groups: BuildInstanceInsertMenu(instance),
-		};
-	}
+		});
+	};
 
-	private onAddClick(event: MouseEvent, instance: Instance) {
+	const onAddClick = (event: ReactMouseEvent<HTMLButtonElement>, instance: Instance) => {
 		event.preventDefault();
 		event.stopPropagation();
 
-		const rect = (event.currentTarget as HTMLElement).getBoundingClientRect();
+		const rect = event.currentTarget.getBoundingClientRect();
 
-		this.openInsertMenuAt(instance, rect.right, rect.bottom);
-	}
-
-	private onMenuClose = () => {
-		this.menu = null;
+		openInsertMenuAt(instance, rect.right, rect.bottom);
 	};
 
-	private onMenuSelect = (event: CustomEvent<ContextMenuSelectDetail>) => {
-		const menu = this.menu;
+	const createInstance = (className: string, parent: Instance) => {
+		try {
+			const child = InstanceFactory.Create(className, parent);
 
-		if (!menu) return;
+			setExpanded((current) => new Set([...current, parent]));
+			select(child);
+			scheduleRefresh();
+		} catch (error) {
+			console.error(`Failed to create ${className}:`, error);
+		}
+	};
 
-		this.menu = null;
+	const handleMenuSelect = (id: string) => {
+		const current = menu;
 
-		const id = event.detail.id;
+		if (!current) return;
 
 		if (id.startsWith(ACTION_PREFIX)) {
-			this.runAction(id.slice(ACTION_PREFIX.length), menu);
+			const action = id.slice(ACTION_PREFIX.length);
+
+			if (action === "rename") {
+				setMenu(null);
+				beginRename(current.instance);
+				return;
+			}
+
+			if (action === "delete") {
+				setMenu(null);
+				deleteInstance(current.instance);
+				return;
+			}
+
+			if (action === "move") {
+				if (IsProtectedInstance(current.instance, root)) {
+					setMenu(null);
+					return;
+				}
+
+				const { groups, targets } = BuildMoveTargetMenu(current.instance, root);
+
+				if (targets.length === 0) {
+					setMenu(null);
+					return;
+				}
+
+				setMenu({
+					...current,
+					heading: `Move ${current.instance.Name} to…`,
+					groups,
+					moveTargets: targets,
+				});
+				return;
+			}
+
+			setMenu(null);
 			return;
 		}
 
 		if (id.startsWith(MOVE_PREFIX)) {
-			const destination = menu.moveTargets?.[Number(id.slice(MOVE_PREFIX.length))];
+			const destination = current.moveTargets?.[Number(id.slice(MOVE_PREFIX.length))];
+
+			setMenu(null);
 
 			if (destination) {
-				this.moveInstance(menu.instance, destination);
+				moveInstance(current.instance, destination);
 			}
 
 			return;
 		}
 
-		this.createInstance(id, menu.instance);
+		setMenu(null);
+		createInstance(id, current.instance);
 	};
 
-	private createInstance(className: string, parent: Instance) {
-		try {
-			const child = InstanceFactory.Create(className, parent);
-
-			this.expanded = new Set([...this.expanded, parent]);
-			this.select(child);
-			this.scheduleRefresh();
-		} catch (error) {
-			console.error(`Failed to create ${className}:`, error);
-		}
-	}
-
-	private runAction(action: string, menu: ExplorerMenu) {
-		switch (action) {
-			case "rename":
-				this.beginRename(menu.instance);
-				break;
-			case "delete":
-				this.deleteInstance(menu.instance);
-				break;
-			case "move":
-				this.openMoveMenu(menu.instance, menu.x, menu.y);
-				break;
-		}
-	}
-
-	private openMoveMenu(instance: Instance, x: number, y: number) {
-		const root = this.engine?.DataModel;
-
-		if (!root || IsProtectedInstance(instance, root)) return;
-
-		const { groups, targets } = BuildMoveTargetMenu(instance, root);
-
-		if (targets.length === 0) return;
-
-		// The menu that fired `item-select` dispatches `menu-close` right after
-		// that handler returns. Opening the destination menu in a microtask
-		// keeps that close from clearing the new menu.
-		queueMicrotask(() => {
-			if (!this.isConnected) return;
-
-			this.menu = {
-				instance,
-				x,
-				y,
-				heading: `Move ${instance.Name} to…`,
-				groups,
-				moveTargets: targets,
-			};
-		});
-	}
-
-	/* Keyboard navigation --------------------------------------------------- */
-
-	private getVisibleRows(): Instance[] {
-		const root = this.engine?.DataModel;
+	const getVisibleRows = (): Instance[] => {
 		const rows: Instance[] = [];
-
-		if (!root) return rows;
 
 		const walk = (instance: Instance) => {
 			rows.push(instance);
 
-			if (!this.expanded.has(instance)) return;
+			if (!expanded.has(instance)) return;
 
-			for (const child of this.getChildren(instance)) {
+			for (const child of getChildren(instance)) {
 				walk(child);
 			}
 		};
@@ -415,85 +368,81 @@ export class ExplorerWindow extends BaseWindow {
 		walk(root);
 
 		return rows;
-	}
+	};
 
-	private selectOffset(offset: number) {
-		const rows = this.getVisibleRows();
-		const index = this.selected ? rows.indexOf(this.selected) : -1;
+	const selectOffset = (offset: number) => {
+		const rows = getVisibleRows();
+		const index = selected ? rows.indexOf(selected) : -1;
 		const next = rows[index + offset];
 
 		if (next) {
-			this.select(next);
+			select(next);
 		}
-	}
+	};
 
-	private onTreeKeyDown = (event: KeyboardEvent) => {
-		const instance = this.selected;
+	const onTreeKeyDown = (event: ReactKeyboardEvent<HTMLDivElement>) => {
+		const instance = selected;
 
-		if (!instance || this.renaming) return;
+		if (!instance || renaming) return;
 
 		switch (event.key) {
 			case "ArrowDown":
 				event.preventDefault();
-				this.selectOffset(1);
+				selectOffset(1);
 				break;
 			case "ArrowUp":
 				event.preventDefault();
-				this.selectOffset(-1);
+				selectOffset(-1);
 				break;
 			case "ArrowRight":
 				event.preventDefault();
 
-				if (this.getChildren(instance).length > 0 && !this.expanded.has(instance)) {
-					this.toggle(instance);
+				if (getChildren(instance).length > 0 && !expanded.has(instance)) {
+					toggle(instance);
 				} else {
-					this.selectOffset(1);
+					selectOffset(1);
 				}
 				break;
 			case "ArrowLeft":
 				event.preventDefault();
 
-				if (this.expanded.has(instance) && this.getChildren(instance).length > 0) {
-					this.toggle(instance);
+				if (expanded.has(instance) && getChildren(instance).length > 0) {
+					toggle(instance);
 				} else if (instance.Parent) {
-					this.select(instance.Parent);
+					select(instance.Parent);
 				}
 				break;
 			case "F2":
 				event.preventDefault();
-				this.beginRename(instance);
+				beginRename(instance);
 				break;
 			case "Delete":
 				event.preventDefault();
-				this.deleteInstance(instance);
+				deleteInstance(instance);
 				break;
 			case "Insert": {
 				event.preventDefault();
 
-				const row = this.renderRoot.querySelector<HTMLElement>(
-					'.node-row[data-selected="true"]',
+				const row = treeRef.current?.querySelector<HTMLElement>(
+					'.ce-node-row[data-selected="true"]',
 				);
 				const rect = row?.getBoundingClientRect();
 
-				this.openInsertMenuAt(instance, rect?.right ?? 200, rect?.bottom ?? 200);
+				openInsertMenuAt(instance, rect?.right ?? 200, rect?.bottom ?? 200);
 				break;
 			}
 			case "Enter":
 				event.preventDefault();
 
-				if (this.getChildren(instance).length > 0) {
-					this.toggle(instance);
+				if (getChildren(instance).length > 0) {
+					toggle(instance);
 				}
 				break;
 		}
 	};
 
-	/* Drag and drop --------------------------------------------------------- */
-
-	private canDrop(dragged: Instance | null, target: Instance): boolean {
-		const root = this.engine?.DataModel;
-
-		if (!dragged || !root) return false;
+	const canDrop = (dragged: Instance | null, target: Instance): boolean => {
+		if (!dragged) return false;
 		if (dragged === root) return false;
 		if (dragged === target) return false;
 		if (dragged.Parent === target) return false;
@@ -507,28 +456,28 @@ export class ExplorerWindow extends BaseWindow {
 		}
 
 		return true;
-	}
+	};
 
-	private onDragStart(event: DragEvent, instance: Instance) {
-		if (instance === this.engine?.DataModel) {
+	const onDragStart = (event: ReactDragEvent<HTMLDivElement>, instance: Instance) => {
+		if (instance === root) {
 			event.preventDefault();
 			return;
 		}
 
-		this.dragging = instance;
+		setDragging(instance);
 
 		if (event.dataTransfer) {
 			event.dataTransfer.effectAllowed = "move";
 			event.dataTransfer.setData("text/plain", instance.Name ?? "");
 		}
-	}
+	};
 
-	private onDragOver(event: DragEvent, instance: Instance) {
+	const onDragOver = (event: ReactDragEvent<HTMLDivElement>, instance: Instance) => {
 		event.preventDefault();
 		event.stopPropagation();
 
-		if (!this.canDrop(this.dragging, instance)) {
-			this.dropTarget = null;
+		if (!canDrop(dragging, instance)) {
+			setDropTarget(null);
 
 			if (event.dataTransfer) {
 				event.dataTransfer.dropEffect = "none";
@@ -537,168 +486,155 @@ export class ExplorerWindow extends BaseWindow {
 			return;
 		}
 
-		this.dropTarget = instance;
+		setDropTarget(instance);
 
 		if (event.dataTransfer) {
 			event.dataTransfer.dropEffect = "move";
 		}
-	}
+	};
 
-	private onDragLeave(event: DragEvent, instance: Instance) {
+	const onDragLeave = (event: ReactDragEvent<HTMLDivElement>, instance: Instance) => {
 		event.stopPropagation();
 
-		if (this.dropTarget === instance) {
-			this.dropTarget = null;
+		if (dropTarget === instance) {
+			setDropTarget(null);
 		}
-	}
+	};
 
-	private onDrop(event: DragEvent, target: Instance) {
+	const onDrop = (event: ReactDragEvent<HTMLDivElement>, target: Instance) => {
 		event.preventDefault();
 		event.stopPropagation();
 
-		const dragged = this.dragging;
+		const dragged = dragging;
 
-		this.dragging = null;
-		this.dropTarget = null;
+		setDragging(null);
+		setDropTarget(null);
 
-		if (!dragged || !this.canDrop(dragged, target)) return;
+		if (!dragged || !canDrop(dragged, target)) return;
 
-		this.moveInstance(dragged, target);
-	}
+		moveInstance(dragged, target);
+	};
 
-	private onDragEnd() {
-		this.dragging = null;
-		this.dropTarget = null;
-	}
+	const onDragEnd = () => {
+		setDragging(null);
+		setDropTarget(null);
+	};
 
-	/* Rendering ------------------------------------------------------------- */
-
-	private renderNode(instance: Instance, depth = 0): TemplateResult {
-		const children = this.getChildren(instance);
+	const renderNode = (instance: Instance, depth = 0, key = "root") => {
+		const children = getChildren(instance);
 		const hasChildren = children.length > 0;
-		const isExpanded = this.expanded.has(instance);
-		const isSelected = this.selected === instance;
-		const isDragging = this.dragging === instance;
-		const isDropTarget = this.dropTarget === instance;
-		const isRenaming = this.renaming === instance;
+		const isExpanded = expanded.has(instance);
+		const isSelected = selected === instance;
+		const isDragging = dragging === instance;
+		const isDropTarget = dropTarget === instance;
+		const isRenaming = renaming === instance;
 
-		return html`
-			<div class="node">
+		const rowClass = [
+			"ce-node-row",
+			isSelected ? "selected" : "",
+			isDragging ? "dragging" : "",
+			isDropTarget ? "drop-target" : "",
+		]
+			.filter(Boolean)
+			.join(" ");
+
+		return (
+			<div className="ce-node" key={key}>
 				<div
-					class=${[
-						"node-row",
-						isSelected ? "selected" : "",
-						isDragging ? "dragging" : "",
-						isDropTarget ? "drop-target" : "",
-					].join(" ")}
-					style="--depth: ${depth}"
-					data-selected=${isSelected ? "true" : "false"}
-					draggable=${instance !== this.engine?.DataModel && !isRenaming ? "true" : "false"}
-					@click=${(event: MouseEvent) => this.onRowClick(event, instance)}
-					@dragstart=${(event: DragEvent) => this.onDragStart(event, instance)}
-					@dragend=${() => this.onDragEnd()}
-					@dragover=${(event: DragEvent) => this.onDragOver(event, instance)}
-					@dragleave=${(event: DragEvent) => this.onDragLeave(event, instance)}
-					@drop=${(event: DragEvent) => this.onDrop(event, instance)}
-					@contextmenu=${(event: MouseEvent) => this.openMenu(event, instance)}
+					className={rowClass}
+					style={{ "--depth": depth } as CSSProperties}
+					data-selected={isSelected ? "true" : "false"}
+					draggable={instance !== root && !isRenaming}
+					onClick={(event) => {
+						select(instance);
+						treeRef.current?.focus();
+						event.stopPropagation();
+					}}
+					onDragStart={(event) => onDragStart(event, instance)}
+					onDragEnd={onDragEnd}
+					onDragOver={(event) => onDragOver(event, instance)}
+					onDragLeave={(event) => onDragLeave(event, instance)}
+					onDrop={(event) => onDrop(event, instance)}
+					onContextMenu={(event) => openMenu(event, instance)}
 				>
 					<span
-						class="arrow"
-						@click=${(event: Event) => {
+						className="ce-arrow"
+						onClick={(event) => {
 							event.stopPropagation();
 
 							if (hasChildren) {
-								this.toggle(instance);
+								toggle(instance);
 							}
 						}}
 					>
-						${hasChildren ? (isExpanded ? "▼" : "▶") : ""}
+						{hasChildren ? (isExpanded ? "▼" : "▶") : ""}
 					</span>
 
 					<img
-						class="icon"
-						src=${this.getIcon(instance)}
+						className="ce-icon"
+						src={`/class_icons/${instance.ClassName}.svg`}
 						alt=""
-						@error=${ApplyIconFallback}
+						onError={ApplyIconFallback}
 					/>
 
-					${
-						isRenaming
-							? html`
-									<input
-										class="rename"
-										type="text"
-										.value=${this.draftName}
-										@input=${(event: Event) => {
-											this.draftName = (
-												event.target as HTMLInputElement
-											).value;
-										}}
-										@keydown=${this.onRenameKeyDown}
-										@blur=${this.commitRename}
-										@click=${(event: Event) => event.stopPropagation()}
-									/>
-								`
-							: html`
-									<span class="name">${instance.Name}</span>
-									<span class="class-name">${instance.ClassName}</span>
-								`
-					}
+					{isRenaming ? (
+						<input
+							ref={renameRef}
+							className="ce-rename"
+							type="text"
+							value={draftName}
+							onChange={(event) => {
+								draftNameRef.current = event.target.value;
+								setDraftName(event.target.value);
+							}}
+							onKeyDown={onRenameKeyDown}
+							onBlur={commitRename}
+							onClick={(event) => event.stopPropagation()}
+						/>
+					) : (
+						<>
+							<span className="ce-name">{instance.Name}</span>
+							<span className="ce-class-name">{instance.ClassName}</span>
+						</>
+					)}
 
 					<button
 						type="button"
-						class="row-action"
-						title=${`Insert into ${instance.Name}`}
-						@click=${(event: MouseEvent) => this.onAddClick(event, instance)}
+						className="ce-row-action"
+						title={`Insert into ${instance.Name}`}
+						onClick={(event) => onAddClick(event, instance)}
 					>
 						+
 					</button>
 				</div>
 
-				${
-					isExpanded && hasChildren
-						? html`
-								<div class="children">
-									${children.map((child) => this.renderNode(child, depth + 1))}
-								</div>
-							`
-						: ""
-				}
+				{isExpanded && hasChildren ? (
+					<div className="ce-children">
+						{children.map((child, index) =>
+							renderNode(child, depth + 1, `${key}/${index}`),
+						)}
+					</div>
+				) : null}
 			</div>
-		`;
-	}
+		);
+	};
 
-	render() {
-		void this.revision;
-
-		const root = this.engine?.DataModel;
-
-		if (!root) {
-			return html` <div class="empty">No DataModel</div> `;
-		}
-
-		return html`
-			<div class="explorer">
-				<div class="tree" tabindex="0" @keydown=${this.onTreeKeyDown}>
-					${this.renderNode(root)}
-				</div>
+	return (
+		<div className="ce-explorer">
+			<div className="ce-tree" ref={treeRef} tabIndex={0} onKeyDown={onTreeKeyDown}>
+				{renderNode(root)}
 			</div>
-			${
-				this.menu
-					? html`
-							<context-menu
-								.x=${this.menu.x}
-								.y=${this.menu.y}
-								.heading=${this.menu.heading}
-								.groups=${this.menu.groups}
-								@item-select=${this.onMenuSelect}
-								@menu-close=${this.onMenuClose}
-							></context-menu>
-						`
-					: ""
-			}
-		`;
-	}
 
-	static styles = explorerStyles;
+			{menu ? (
+				<ContextMenu
+					x={menu.x}
+					y={menu.y}
+					heading={menu.heading}
+					groups={menu.groups}
+					onSelect={handleMenuSelect}
+					onClose={() => setMenu(null)}
+				/>
+			) : null}
+		</div>
+	);
 }
