@@ -5,25 +5,26 @@ import * as Classes from "../classes";
  * assignable to a plain `new` signature, so they collapse to `never` here —
  * that is what keeps them out of the name map below.
  */
-type Concrete<T> = T extends new (...args: any[]) => infer R ? R : never;
+type Constructed<T> = T extends new (...args: any[]) => infer R ? R : never;
 
 /**
- * Every concrete class exported from `classes/index.ts`, keyed by class name.
+ * Every instantiable class exported from `classes/index.ts`, keyed by class
+ * name.
  *
  * This mirrors `DataModel`'s `ServiceMap`, but for all Instances rather than
  * just services. Abstract bases (Instance, PVInstance, BasePart, BaseService,
- * GuiBase, LayerCollector, GuiButton) fail `Concrete` and are excluded, so
- * `InstanceFactory.new("BasePart")` is a type error instead of an untyped
- * half-constructed instance.
+ * GuiBase, LayerCollector, GuiObject, GuiButton) fail `Constructed` and are
+ * excluded, so `InstanceFactory.new("BasePart")` is a type error instead of an
+ * untyped half-constructed instance.
  */
 type InstanceMap = {
 	[
-		Name in keyof typeof Classes as [Concrete<(typeof Classes)[Name]>] extends [never]
+		Name in keyof typeof Classes as [Constructed<(typeof Classes)[Name]>] extends [never]
 			? never
-			: Concrete<(typeof Classes)[Name]> extends Classes.Instance
+			: Constructed<(typeof Classes)[Name]> extends Classes.Instance
 				? Name
 				: never
-	]: Concrete<(typeof Classes)[Name]>;
+	]: Constructed<(typeof Classes)[Name]>;
 };
 
 type InstanceName = keyof InstanceMap;
@@ -38,10 +39,10 @@ const HasOwn = (value: object, key: string): boolean =>
  * runtime.
  *
  * Keeping this derived means adding a class to `classes/index.ts` is enough to
- * make it insertable; there is no second list to forget. A class qualifies
- * when it is a concrete `Instance`, is not a service (services are
- * engine-owned singletons) and is not the `DataModel` root. Abstract bases are
- * skipped via their own `Abstract` marker, so subclasses do not inherit it.
+ * make it insertable; there is no second list to forget. Concrete classes
+ * declare their own `Concrete` marker, so abstract bases are skipped without
+ * needing to be listed. Services are concrete but engine-owned singletons, and
+ * `DataModel` is the root, so both are excluded from the insert list.
  *
  * The cache is lazy on purpose: `Factory` imports the `classes` namespace, and
  * that namespace is only fully populated after this module has evaluated.
@@ -56,7 +57,7 @@ export function GetCreatableInstances(): readonly string[] {
 
 			const constructor = value as { prototype: object };
 
-			if (HasOwn(constructor, "Abstract")) return false;
+			if (!HasOwn(constructor, "Concrete")) return false;
 			if (!(constructor.prototype instanceof Classes.Instance)) return false;
 			if (constructor.prototype instanceof Classes.BaseService) return false;
 

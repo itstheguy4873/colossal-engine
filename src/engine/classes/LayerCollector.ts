@@ -5,8 +5,6 @@ import { GuiBase } from "./GuiBase";
  * each LayerCollector is mounted as one layer by the GUI renderer.
  */
 export abstract class LayerCollector extends GuiBase {
-	public static readonly Abstract = true;
-
 	public get ClassName(): string {
 		return "LayerCollector";
 	}

@@ -3,8 +3,6 @@ import { CFrame } from "../datatypes/CFrame";
 import { Vector3 } from "../datatypes/Vector3";
 
 export abstract class PVInstance extends Instance {
-	public static readonly Abstract = true;
-
 	public get ClassName(): string {
 		return "PVInstance";
 	}

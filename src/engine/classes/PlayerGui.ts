@@ -8,6 +8,8 @@ import { BaseService } from "./BaseService";
  * any ScreenGui the game already created.
  */
 export class PlayerGui extends BaseService {
+	public static readonly Concrete = true;
+
 	public get ClassName(): string {
 		return "PlayerGui";
 	}

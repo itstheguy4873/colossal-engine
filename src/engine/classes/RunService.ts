@@ -2,6 +2,8 @@ import { BaseService } from "./BaseService";
 import { Signal } from "../datatypes/Signal";
 
 export class RunService extends BaseService {
+	public static readonly Concrete = true;
+
 	public get ClassName(): string {
 		return "RunService";
 	}

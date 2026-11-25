@@ -7,6 +7,8 @@ import { TextXAlignment, TextYAlignment } from "./TextAlignment";
  * is provided by GuiButton; the text properties mirror TextLabel.
  */
 export class TextButton extends GuiButton {
+	public static readonly Concrete = true;
+
 	public get ClassName(): string {
 		return "TextButton";
 	}

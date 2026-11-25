@@ -3,6 +3,8 @@ import { Color3 } from "../datatypes/Color3";
 import { TextXAlignment, TextYAlignment } from "./TextAlignment";
 
 export class TextLabel extends GuiObject {
+	public static readonly Concrete = true;
+
 	public get ClassName(): string {
 		return "TextLabel";
 	}

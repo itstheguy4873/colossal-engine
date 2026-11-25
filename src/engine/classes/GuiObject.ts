@@ -12,8 +12,6 @@ import { Color3 } from "../datatypes/Color3";
  * plus BackgroundTransparency produce the CSS colour.
  */
 export abstract class GuiObject extends GuiBase {
-	public static readonly Abstract = true;
-
 	public get ClassName(): string {
 		return "GuiObject";
 	}

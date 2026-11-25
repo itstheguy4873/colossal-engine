@@ -21,3 +21,8 @@ export * from "./TextLabel";
 export * from "./TextButton";
 export * from "./TextBox";
 export * from "./ScrollingFrame";
+export * from "./BaseScript";
+export * from "./SourceContainer";
+export * from "./Script";
+export * from "./LocalScript";
+export * from "./ModuleScript";

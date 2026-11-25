@@ -12,6 +12,8 @@ import { Vector2 } from "../datatypes/Vector2";
  * children are positioned relative to the canvas, not the frame.
  */
 export class ScrollingFrame extends GuiObject {
+	public static readonly Concrete = true;
+
 	public get ClassName(): string {
 		return "ScrollingFrame";
 	}

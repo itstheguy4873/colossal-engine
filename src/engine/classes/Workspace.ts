@@ -2,6 +2,8 @@ import { BaseService } from "./BaseService";
 import { Camera } from "./Camera";
 
 export class Workspace extends BaseService {
+	public static readonly Concrete = true;
+
 	public get ClassName(): string {
 		return "Workspace";
 	}

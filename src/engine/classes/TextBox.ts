@@ -13,6 +13,8 @@ import { TextXAlignment } from "./TextAlignment";
  * Roblox also passes an InputObject to FocusLost; there is no such type here.
  */
 export class TextBox extends GuiObject {
+	public static readonly Concrete = true;
+
 	public get ClassName(): string {
 		return "TextBox";
 	}

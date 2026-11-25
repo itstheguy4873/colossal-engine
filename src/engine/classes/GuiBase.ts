@@ -6,8 +6,6 @@ import { Instance } from "./Instance";
  * LayerCollectors own the screen-level switches.
  */
 export abstract class GuiBase extends Instance {
-	public static readonly Abstract = true;
-
 	public get ClassName(): string {
 		return "GuiBase";
 	}

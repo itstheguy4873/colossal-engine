@@ -3,6 +3,8 @@ import { CFrame } from "../datatypes/CFrame";
 import { Vector3 } from "../datatypes/Vector3";
 
 export class Camera extends PVInstance {
+	public static readonly Concrete = true;
+
 	public get ClassName(): string {
 		return "Camera";
 	}

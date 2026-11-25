@@ -12,6 +12,8 @@ import { Signal } from "../datatypes/Signal";
  * working alongside the signals.
  */
 export class UserInputService extends BaseService {
+	public static readonly Concrete = true;
+
 	public get ClassName(): string {
 		return "UserInputService";
 	}

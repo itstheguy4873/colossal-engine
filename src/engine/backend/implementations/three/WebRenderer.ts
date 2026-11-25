@@ -15,9 +15,23 @@ export class WebRenderer implements IRenderer {
 	private isDisposed: boolean = false;
 	private meshes = new Map<BasePart, THREE.Mesh>();
 	private resizeObserver: ResizeObserver;
+	private viewportWidth = 0;
+	private viewportHeight = 0;
 
 	constructor(container: HTMLElement) {
 		this.container = container;
+
+		// The mount is a plain, detached div when the engine is constructed.
+		// Without an explicit height it is content-sized by the canvas (whose
+		// intrinsic size is 300x150), so the ResizeObserver would lock it to a
+		// short strip instead of the dock panel.
+		Object.assign(this.container.style, {
+			position: "relative",
+			width: "100%",
+			height: "100%",
+			overflow: "hidden",
+		});
+
 		this.scene = new THREE.Scene();
 
 		// The container can still be 0x0 here (a dock panel that has not been
@@ -42,6 +56,11 @@ export class WebRenderer implements IRenderer {
 		}
 
 		this.container.appendChild(this.renderer.domElement);
+		this.renderer.domElement.style.display = "block";
+
+		// Size once now that the canvas is in the mount; the observer handles
+		// later dock-panel resizes.
+		this.resizeToContainer();
 
 		this.resizeObserver.observe(this.container);
 
@@ -56,6 +75,16 @@ export class WebRenderer implements IRenderer {
 
 	public Render(): void {
 		if (this.isDisposed) return;
+
+		// ResizeObserver notifications can be deferred while the page is not
+		// focused (or while dockview is still laying out). The render loop is
+		// the final guarantee that the canvas matches its mount before drawing.
+		if (
+			this.container.clientWidth !== this.viewportWidth ||
+			this.container.clientHeight !== this.viewportHeight
+		) {
+			this.resizeToContainer();
+		}
 
 		this.syncCamera();
 		this.syncScene();
@@ -146,6 +175,8 @@ export class WebRenderer implements IRenderer {
 		// A hidden dock tab reports 0x0; resizing to it would produce a NaN aspect.
 		if (width === 0 || height === 0) return;
 
+		this.viewportWidth = width;
+		this.viewportHeight = height;
 		this.camera.aspect = width / height;
 		this.camera.updateProjectionMatrix();
 		this.renderer.setSize(width, height);

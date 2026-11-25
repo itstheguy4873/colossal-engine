@@ -1,13 +1,19 @@
 import { Signal } from "../datatypes/Signal";
 
+/**
+ * Base of every engine object.
+ *
+ * Instantiable subclasses declare `static readonly Concrete = true`; runtime
+ * consumers (the editor insert menus) use that marker to distinguish concrete
+ * classes from abstract bases without a second registry.
+ */
 export abstract class Instance {
 	public Name: string;
 
 	protected _children: Instance[];
 	public static readonly ClassName: string = "Instance";
-	/** Marks abstract bases so runtime insert-menu enumeration can skip them. */
-	public static readonly Abstract = true;
 	private _parent: Instance | null = null;
+	private readonly _propertyChangedSignals = new Map<string, Signal<[]>>();
 
 	public readonly ChildAdded = new Signal<[Child: Instance]>();
 	public readonly ChildRemoved = new Signal<[Child: Instance]>();
@@ -76,6 +82,55 @@ export abstract class Instance {
 		for (const Descendant of Descendants) {
 			Descendant.AncestryChanged.Fire(Descendant, Descendant.Parent);
 		}
+
+		this.FirePropertyChanged("Parent");
+	}
+
+	/**
+	 * Fires whenever `property` is assigned a new value.
+	 *
+	 * The first subscription instruments the property: the instance's own data
+	 * field is replaced with an accessor, so plain `instance.Name = "x"` writes
+	 * notify without every class needing a hand-written setter. Properties that
+	 * live on the prototype (`Parent`) fire explicitly instead.
+	 */
+	public GetPropertyChangedSignal(property: string): Signal<[]> {
+		let signal = this._propertyChangedSignals.get(property);
+
+		if (!signal) {
+			signal = new Signal<[]>();
+			this._propertyChangedSignals.set(property, signal);
+			this.InstrumentProperty(property);
+		}
+
+		return signal;
+	}
+
+	/** Notifies listeners that `property` was changed by engine code. */
+	protected FirePropertyChanged(property: string): void {
+		this._propertyChangedSignals.get(property)?.Fire();
+	}
+
+	private InstrumentProperty(property: string): void {
+		const descriptor = Object.getOwnPropertyDescriptor(this, property);
+
+		// Only own data fields can be swapped for accessors. Signals and
+		// prototype accessors (Parent) are either unchanged or fire explicitly.
+		if (!descriptor || !("value" in descriptor) || !descriptor.configurable) return;
+
+		let value = descriptor.value;
+
+		Object.defineProperty(this, property, {
+			configurable: true,
+			enumerable: descriptor.enumerable,
+			get: () => value,
+			set: (next: unknown) => {
+				if (Object.is(next, value)) return;
+
+				value = next;
+				this.FirePropertyChanged(property);
+			},
+		});
 	}
 
 	public abstract get ClassName(): string;

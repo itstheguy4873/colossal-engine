@@ -14,6 +14,8 @@ type ServiceMap = {
 type ServiceName = keyof ServiceMap;
 
 export class DataModel extends Classes.Instance {
+	public static readonly Concrete = true;
+
 	public get ClassName(): string {
 		return "DataModel";
 	}
