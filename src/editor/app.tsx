@@ -47,7 +47,10 @@ export function App() {
 
 	return (
 		<EditorProvider value={services}>
-			<div className="ce-app">
+			<div
+				className="ce-app"
+				onContextMenu={(event) => event.preventDefault()}
+			>
 				<DockLayout
 					defaultLayout={initialLayout}
 					loadTab={layoutManager.LoadTab}
